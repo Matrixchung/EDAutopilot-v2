@@ -10,7 +10,10 @@ keysDict = {
     'Speed100': 0x47, # NUM 7
     'SpeedZero': 0x2D, # Key X
     'Speed50': 0x48, # NUM 8
+    'ThrustUp': 0x13, # Key R
     'space': 0x39,
+    'TargetAhead': 0x14, # Key T 
+    'UI_OpenGalaxyMap': 0x4A, # NUM -
     'UI_NextTab': 0x12, # Key E
     'UI_PrevTab': 0x10, # Key Q
     'UI_Up': 0x11, # Key W
@@ -18,6 +21,10 @@ keysDict = {
     'UI_Left': 0x1E, # Key A
     'UI_Right': 0x20, # Key D
     'UI_1': 0x02, # Key 1
+    'UI_2': 0x03, # Key 2
+    'UI_3': 0x04, # Key 3
+    'UI_4': 0x05, # Key 4
+    'enter': 0x1C, # Key RETURN(ENTER)
     'esc': 0x01 # Key ESC
 }
 

@@ -1,8 +1,11 @@
 # https://elite-journal.readthedocs.io/en/latest/Status%20File/
 from os import environ, listdir
 from os.path import join, isfile, getmtime, abspath
+from ctypes import windll
+import win32file
 import json
-
+import traceback
+savedGamePath = environ['USERPROFILE'] + "\Saved Games\Frontier Developments\Elite Dangerous"
 status = {
     'Docked': False,
     'Landed': False,
@@ -35,7 +38,8 @@ status = {
     'InSRV': False,
     'InAnalysisMode': False,
     'NightVision': False,
-    'AltitudeFromAverageRadius': False
+    'AltitudeFromAverageRadius': False,
+    'GUIFocus': 'NoFocus' # NoFocus (default)
 }
 flags = {
     'Docked': 0x00000001,
@@ -71,23 +75,50 @@ flags = {
     'NightVision': 0x10000000,
     'AltitudeFromAverageRadius': 0x20000000
 }
-def getFlagsByJSON(statusPath=None):
-    if not statusPath: # Default Saving Path
-        statusPath = environ['USERPROFILE']+"\Saved Games\Frontier Developments\Elite Dangerous\Status.json"
+def isFileOpen(filePath):
     try:
-        with open(statusPath,'r') as f:
-            data = json.load(f)
+        fHandle = win32file.CreateFile(filePath,win32file.GENERIC_READ,0,None,win32file.OPEN_EXISTING,win32file.FILE_ATTRIBUTE_NORMAL,None)
+        if int(fHandle) == win32file.INVALID_HANDLE_VALUE: # already opened and occupied
+            return True
+        win32file.CloseHandle(fHandle)
+        return False
+    except:
+        return True
+def getFlagsAndFocusByJSON(statusPath=None):
+    if not statusPath: # Default Saving Path
+        statusPath = savedGamePath+r"\Status.json"
+    data = {'Flags':0,'GuiFocus':''}
+    try :
+        if isFileOpen(statusPath) is not True:
+            with open(statusPath,'r') as f:
+                if f is not None or f != '':
+                    data = json.load(f)
     except :
         print('Error occurred in reading Status.json')
-        data = {'Flags':0}
+        # traceback.print_exc()
+        data = {'Flags':0,'GuiFocus':''}
+    else :
+        if data['GuiFocus'] != '':
+            if data['GuiFocus'] == 0: status['GuiFocus'] = 'NoFocus'
+            elif data['GuiFocus'] == 1: status['GuiFocus'] = 'Panel_4' # InternalPanel (right hand side)
+            elif data['GuiFocus'] == 2: status['GuiFocus'] = 'Panel_1' # ExternalPanel (left hand side)
+            elif data['GuiFocus'] == 3: status['GuiFocus'] = 'Panel_2' # CommsPanel (top)
+            elif data['GuiFocus'] == 4: status['GuiFocus'] = 'Panel_3' # RolePanel (bottom)
+            elif data['GuiFocus'] == 5: status['GuiFocus'] = 'StationServices'
+            elif data['GuiFocus'] == 6: status['GuiFocus'] = 'GalaxyMap'
+            elif data['GuiFocus'] == 7: status['GuiFocus'] = 'SystemMap'
+            elif data['GuiFocus'] == 8: status['GuiFocus'] = 'Orrery'
+            elif data['GuiFocus'] == 9: status['GuiFocus'] = 'FSS'
+            elif data['GuiFocus'] == 10: status['GuiFocus'] = 'SAA'
+            elif data['GuiFocus'] == 11: status['GuiFocus'] = 'Codex'
     return data['Flags']
 
 def getStatusByFlags(rawFlags):
-    for statusName in status.keys():
+    for statusName in flags.keys():
         status[statusName] = rawFlags&flags[statusName] != 0
 
 def setStatusToStatesMachine(model):
-    rawFlags = getFlagsByJSON()
+    rawFlags = getFlagsAndFocusByJSON()
     getStatusByFlags(rawFlags)
     if(status['Docked']) and model.state == 'initial': model.startInDock() # startInDock
     elif (status['Docked']) is False and model.state == 'initial' : model.startInSpace()
@@ -97,7 +128,9 @@ def setStatusToStatesMachine(model):
 def showAllTrueStatus():
     statusList = []
     for key,value in status.items():
-        if value : statusList.append(key)
-    if len(statusList) == 0 : statusList.append('None')
+        if value == True : statusList.append(key)
+    if len(statusList) == 0 : statusList = ['None']
     return statusList
 
+def getGuiFocus():
+    return status['GuiFocus']
