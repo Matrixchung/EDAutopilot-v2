@@ -106,6 +106,7 @@ def parseLogs(logPath=None):
 
 def setJournal():
     parseLogs()
+    return journal
     # return journal
 
 if __name__ == '__main__': # Test

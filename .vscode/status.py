@@ -98,7 +98,7 @@ def getFlagsAndFocusByJSON(statusPath=None):
         # traceback.print_exc()
         data = {'Flags':0,'GuiFocus':''}
     else :
-        if data['GuiFocus'] != '':
+        if 'GuiFocus' in data:
             if data['GuiFocus'] == 0: status['GuiFocus'] = 'NoFocus'
             elif data['GuiFocus'] == 1: status['GuiFocus'] = 'Panel_4' # InternalPanel (right hand side)
             elif data['GuiFocus'] == 2: status['GuiFocus'] = 'Panel_1' # ExternalPanel (left hand side)
@@ -111,21 +111,17 @@ def getFlagsAndFocusByJSON(statusPath=None):
             elif data['GuiFocus'] == 9: status['GuiFocus'] = 'FSS'
             elif data['GuiFocus'] == 10: status['GuiFocus'] = 'SAA'
             elif data['GuiFocus'] == 11: status['GuiFocus'] = 'Codex'
+        else:
+            status['GuiFocus'] = 'NoFocus'
     return data['Flags']
 
 def getStatusByFlags(rawFlags):
     for statusName in flags.keys():
         status[statusName] = rawFlags&flags[statusName] != 0
 
-def setStatusToStatesMachine(model):
+def showAllTrueStatus():
     rawFlags = getFlagsAndFocusByJSON()
     getStatusByFlags(rawFlags)
-    if(status['Docked']) and model.state == 'initial': model.startInDock() # startInDock
-    elif (status['Docked']) is False and model.state == 'initial' : model.startInSpace()
-    # TODO: Add more status
-    # WIP
-
-def showAllTrueStatus():
     statusList = []
     for key,value in status.items():
         if value == True : statusList.append(key)

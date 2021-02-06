@@ -69,6 +69,7 @@ def autoAlign():
                 align = False
                 print('Align Completed')
                 break
+            
 def sunAvoiding():
     sendKey('SpeedZero')
     sendDelay(2)
@@ -149,7 +150,6 @@ def launch(guiFocus):
                 print("Error in launch()")
 def update():
     global remainJumps,status
-    setStatusToStatesMachine(model)
     setJournal()
     trueStatus = showAllTrueStatus()
     guiFocus = getGuiFocus()
@@ -178,16 +178,15 @@ if __name__ == "__main__":
     c2.start()
     c1.start()
 
-    statusImg = np.zeros((500,1200,3),np.uint8)
+    statusImg = np.zeros((300,1200,3),np.uint8) # 初始化一个黑色的状态显示界面
     
     while 1:
         targetX,targetY,navCenter,isAligned,isFocused = coordArray
         
         trueStatus,guiFocus = update()
         
-        cv2.putText(statusImg,'sModel:%s'%model.state,(10,30),cv2.FONT_HERSHEY_DUPLEX,1,(0,255,0))
-        cv2.putText(statusImg,'GUIFocus:%s'%guiFocus,(400,30),cv2.FONT_HERSHEY_DUPLEX,1,(0,255,0))
-        cv2.putText(statusImg,"align:%s"%isAligned,(810,30),cv2.FONT_HERSHEY_DUPLEX,1,(0,255,0))
+        cv2.putText(statusImg,'GUIFocus:%s'%guiFocus,(10,30),cv2.FONT_HERSHEY_DUPLEX,1,(0,255,0))
+        cv2.putText(statusImg,"align:%s"%isAligned,(400,30),cv2.FONT_HERSHEY_DUPLEX,1,(0,255,0))
         cv2.putText(statusImg,'state:%s'%trueStatus,(10,60),cv2.FONT_HERSHEY_DUPLEX,1,(0,255,0))
         cv2.putText(statusImg,'Status:%s'%status,(10,90),cv2.FONT_HERSHEY_DUPLEX,1,(0,255,0))
         cv2.putText(statusImg,'Loc:%s'%journal['location'],(310,90),cv2.FONT_HERSHEY_DUPLEX,1,(0,255,0))

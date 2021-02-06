@@ -1,6 +1,4 @@
-from transitions import *
 from multiprocessing import Process,Queue,shared_memory
-from threading import Event
 import pyautogui
 import keyboard
 import win32gui
@@ -19,11 +17,11 @@ from keybinds import *
 from status import *
 
 ## Constants
-ALIGN_TRIMM_DELAY = 0.020
+ALIGN_TRIMM_DELAY = 0.030
 KEY_DEFAULT_DELAY = 0.120
 KEY_REPEAT_DELAY = 0.200
 DELAY_BETWEEN_KEYS = 1.5
-alignDeadZone = 2.0
+ALIGN_DEAD_ZONE = 1.5
 globalWindowName = "Elite - Dangerous (CLIENT)"
 
 eventsQueue = Queue(maxsize=1)
@@ -52,41 +50,7 @@ autoAlign = False
 alignment = False
 destCircleImg = cv2.imread("templates/dest_circle.png",0)
 
-## State Machine
-class shipState(object):
-    def on_enter_sunavoiding(self):
-        sendKey('SpeedZero')
-        sendKey('PitchUpButton',repeat=13)
-    def on_enter_hyperspace(self):
-        sendKey('SpeedZero') # Auto dethrottle
-model = shipState()
-states=[
-    'initial',
-    'normal',
-    'supercruise',
-    'hyperspace',
-    'docking',
-    'docked',
-    'undocking',
-    'sunavoiding'
-]
-transitions= [
-    {'trigger': 'startInSpace','source':'initial','dest':'normal'},
-    {'trigger': 'startInDock','source':'initial','dest':'docked'},
-    {'trigger': 'quit','source':'*','dest':'initial'},
-    {'trigger': 'normalToSc','source':'normal','dest':'supercruise'},
-    {'trigger': 'normalToDock','source':'normal','dest':'docking'},
-    {'trigger': 'dockComplete','source':'docking','dest':'docked'},
-    {'trigger': 'undock','source':'docked','dest':'undocking'},
-    {'trigger': 'scToNormal','source':'supercruise','dest':'normal'},
-    {'trigger': 'jump','source':['supercruise','normal'],'dest':'hyperspace'},
-    {'trigger': 'sunAvoid','source':'supercruise','dest':'sunavoiding'},
-    {'trigger': 'jumpComplete','source':'hyperspace','dest':'supercruise'}
-]
-machine = Machine(model=model, states=states, transitions=transitions, initial='initial')
-
 ## In-Game Utils
-
 def goToPanel(panelName,subPanelName=None,panelImg=None):
     # Three conditions : 1) not at the panelName,go to panelName
     # 2) not at the panelName,go to subPanelName
@@ -186,8 +150,8 @@ def checkAlignWithTemplate(centerImg,circleImg):
         # cv2.rectangle(centerImg, tl, br, (0, 0, 255), 2)
         cirCenter = (tl[0]+br[0])/2-60,(tl[1]+br[1])/2 # 应去位置
         center = 180,220 # 指向位置
-        if abs(center[0]-cirCenter[0])<45 and abs(center[1]-cirCenter[1])<45 : result = True
-        # alignWithPos(queue,(tl[0]+br[0])/2,180,220,navCenterY=(tl[1]+br[1])/2,override=True)
+        if abs(center[0]-cirCenter[0])<35 and abs(center[1]-cirCenter[1])<35 : result = True
+        
     return result
     # return centerImg
 
@@ -218,7 +182,7 @@ def imageProcessing(coordShrName):
         
             compassOriginImg = cv2OriginImg[int(gameResolution[1]/1.63):int(gameResolution[1]/1.06),int(gameResolution[0]/4.04):int(gameResolution[0]/2.02)]
             compassHsv = cv2.cvtColor(compassOriginImg,cv2.COLOR_BGR2HSV)
-            # compassShowImg = compassOriginImg.copy() # 叠加彩色圆形的指南针图像
+            # compassShowImg = compassOriginImg.copy() # screen overlay
 
             if checkAlignWithTemplate(centerImg,destCircleImg) is True: isAligned = 1
             else: isAligned = 0
@@ -232,9 +196,9 @@ def imageProcessing(coordShrName):
         except :
             traceback.print_exc()
 
-def createSharedCoordsBlock(): # targetX,targetY,navCenter,isAligned,isFocused
+def createSharedCoordsBlock(name='ImgCoords'): # targetX,targetY,navCenter,isAligned,isFocused
     a = np.zeros(5)
-    shr = shared_memory.SharedMemory(create=True,name='ImgCoords',size=a.nbytes)
+    shr = shared_memory.SharedMemory(create=True,name=name,size=a.nbytes)
     npArray = np.ndarray(a.shape,dtype=np.float64,buffer=shr.buf)
     npArray[:] = a[:]
     return shr,npArray
@@ -249,7 +213,6 @@ def eventsHandler(q):
             sendHexKey(params[1],params[2],params[3],params[4],params[5])
         elif params[0] == 'DELAY':
             time.sleep(params[1])
-            # callback when delay done WIP
 
 def sendKey(key, hold=None, repeat=1, repeat_delay=None, state=None, queue=None):
     if queue is None : queue = eventsQueue
@@ -316,10 +279,14 @@ def getNavPointsByCompass(compassImg,compassHsv): # NO IMAGE RETURN NEEDED
         # navShowImg = None
     # return (targetX,targetY),navCenter,compassShowImg,navShowImg
     return (targetX,targetY),navCenter # NO IMAGE RETURN NEEDED
-def screenCapture():
+def screenCapture(toFile=True):
     gameCoord,hwnd = getWindowRectByName(globalWindowName)
-    imgPath = time.strftime("%Y-%m-%d-%H-%M-%S",time.localtime())+".png"
-    img = pyautogui.screenshot(imgPath,region=gameCoord)
+    if toFile is True:
+        imgPath = time.strftime("%Y-%m-%d-%H-%M-%S",time.localtime())+".png"
+        img = pyautogui.screenshot(imgPath,region=gameCoord)
+    else:
+        img = pyautogui.screenshot(region=gameCoord)
+        return img
 def locateImageOnScreen(img,confidence=None):
     try:
         if confidence is not None:
