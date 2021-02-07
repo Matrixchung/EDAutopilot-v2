@@ -1,22 +1,22 @@
 from utils import *
-import transitions
-isDebug = True
 class gameSession:
-
+    isDebug = False
     targetX = targetY = navCenter = 0
     isAligned = isFocused = False
     stateList = []
     journal = []
-    status = ''
+    missionList = []
     guiFocus = 'NoFocus'
+    status = ''
     shipLoc = ''
     shipTarget = ''
 
-    def __init__(self,gameName=globalWindowName,name=None):
+    def __init__(self,gameName=globalWindowName,name=None,debug=False):
         if name is None: self.name='Session 1'
         else: self.name = name
         self.shmName = 'shm_'+self.name
-        if isDebug :
+        self.isDebug = debug
+        if self.isDebug :
             print("Now Creating SharedMemory Block...")
         try:
             sharedMem,coordArray = createSharedCoordsBlock(name=self.shmName)
@@ -25,7 +25,7 @@ class gameSession:
                 self.shmCoordArray = coordArray
         except:
             traceback.print_exc() # TODO: Implement it with LOGGER API
-        if isDebug:
+        if self.isDebug:
             print('SharedMemory Block Created:',self.shmCoord.name)
         try:
             self.eventQueue = Queue(maxsize=1)
@@ -37,7 +37,7 @@ class gameSession:
             self.eventProcess.start()
         except:
             traceback.print_exc()
-        if isDebug:
+        if self.isDebug:
             print('Image and Event Processes Started')
         self.update()
     
@@ -50,14 +50,20 @@ class gameSession:
         self.shipLoc = self.journal['location']
         self.shipTarget = self.journal['target']
 
-    def sendKey(self,key, hold=None, repeat=1, repeat_delay=None, state=None):
+    def sendKey(self,key, hold=None, repeat=1, repeat_delay=None, state=None, block=False):
         keyStruct = 'KEY',key,hold,repeat,repeat_delay,state
         self.eventQueue.put(keyStruct)
+        if block and hold is not None: 
+            time.sleep(hold)
+            self.update()
         return key
     
-    def sendDelay(self,delay):
+    def sendDelay(self,delay,block=False):
         keyStruct = 'DELAY',delay
         self.eventQueue.put(keyStruct)
+        if block: 
+            time.sleep(delay)
+            self.update()
         return delay
 
     def align(self,update=False):
@@ -78,40 +84,22 @@ class gameSession:
                 else : self.sendKey('YawLeftButton',hold=KEY_DEFAULT_DELAY-trimX)
         return True
 
+    def sunAvoiding(self,fwdDelay=18): # Only do it once in a loop!
+        self.sendKey('SpeedZero')
+        self.sendDelay(2,block=True)
+        self.sendKey('PitchUpButton',hold=10,block=True)
+        self.sendKey('Speed100')
+        self.sendDelay(fwdDelay,block=True)
+        self.sendKey('SpeedZero')
+        return False
+    
     def stop(self):
         self.shmCoord.close()
         self.shmCoord.unlink()
-        if isDebug:
+        if self.isDebug:
             print('SharedMemory Block Successfully Closed and Unlinked')
         self.imageProcess.terminate()
         self.eventProcess.terminate()
 
-if __name__ == '__main__': # Test
-    session = gameSession()
-    align = False
-    auto = False
-    if isDebug:
-        statusImg = np.zeros((300,1200,3),np.uint8)
-    while not keyboard.is_pressed('p'):
-        session.update()
-        # 输入区
-        if keyboard.is_pressed('o'): align = True
-        if keyboard.is_pressed('home'): auto = True
-        # 功能区
-        if auto:
-            pass
-        if align: align = session.align()
-        if isDebug:
-            cv2.putText(statusImg,'GUIFocus:%s'%session.guiFocus,(10,30),cv2.FONT_HERSHEY_DUPLEX,1,(0,255,0))
-            cv2.putText(statusImg,"align:%s"%session.isAligned,(400,30),cv2.FONT_HERSHEY_DUPLEX,1,(0,255,0))
-            cv2.putText(statusImg,'state:%s'%session.stateList,(10,60),cv2.FONT_HERSHEY_DUPLEX,1,(0,255,0))
-            cv2.putText(statusImg,'Status:%s'%session.status,(10,90),cv2.FONT_HERSHEY_DUPLEX,1,(0,255,0))
-            cv2.putText(statusImg,'Loc:%s'%session.shipLoc,(310,90),cv2.FONT_HERSHEY_DUPLEX,1,(0,255,0))
-            cv2.putText(statusImg,'Target:%s'%session.shipTarget,(700,90),cv2.FONT_HERSHEY_DUPLEX,1,(0,255,0))
-            # cv2.putText(statusImg,'remainJumps:%s'%remainJumps,(10,120),cv2.FONT_HERSHEY_DUPLEX,1,(0,255,0))
-            cv2.imshow("status",statusImg)
-            statusImg.fill(0)
-            cv2.waitKey(1)
-    session.stop()
 
         

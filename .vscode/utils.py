@@ -24,8 +24,6 @@ DELAY_BETWEEN_KEYS = 1.5
 ALIGN_DEAD_ZONE = 1.5
 globalWindowName = "Elite - Dangerous (CLIENT)"
 
-eventsQueue = Queue(maxsize=1)
-
 params = cv2.SimpleBlobDetector_Params()
 params.filterByArea = True
 params.minArea = 15
@@ -43,11 +41,6 @@ hsvWhiteUp = np.array([179,55,254]) # Filter White
 hsvUILow = np.array([100,43,46])
 hsvUIUp = np.array([124,254,254]) # Filter UI
 
-# compassX = compassY = 0
-# targetX = targetY = 0
-# outsideOffsetY = 0
-autoAlign = False
-alignment = False
 destCircleImg = cv2.imread("templates/dest_circle.png",0)
 
 ## In-Game Utils
@@ -105,36 +98,6 @@ def sendKeySequence(keys, delay=DELAY_BETWEEN_KEYS):
     for key in keys:
         sendKey(key)
         sendDelay(delay)
-
-def alignWithPos(navCenter,targetX,targetY,offsetX=None,offsetY=None,navCenterY=None,override=False,queue=None):
-    trimX=trimY=0.0
-    if queue is None:
-        queue = eventsQueue
-    if navCenterY is None:
-        navCenterY = navCenter # 正方形中点
-    if offsetX is None and offsetY is None :
-        offsetX = abs(targetX-navCenter)
-        offsetY = abs(targetY-navCenterY)
-        if offsetX<3: trimX = ALIGN_TRIMM_DELAY # trimming
-        if offsetY<3: trimY = ALIGN_TRIMM_DELAY
-    if eventsQueue.empty() or override is True:
-        if offsetX > alignDeadZone and offsetY > alignDeadZone : # 斜着的情况 先处理Y轴
-            if targetY<navCenterY:
-                sendKey('PitchUpButton',queue=queue,hold=KEY_DEFAULT_DELAY-trimY)
-            else:
-                sendKey('PitchDownButton',queue=queue,hold=KEY_DEFAULT_DELAY-trimY)
-        else:
-            if offsetX>alignDeadZone:
-                if targetX>navCenter:
-                    sendKey('YawRightButton',queue=queue,hold=KEY_DEFAULT_DELAY-trimX)
-                else:
-                    sendKey('YawLeftButton',queue=queue,hold=KEY_DEFAULT_DELAY-trimX)
-            if offsetY>alignDeadZone:
-                if targetY<navCenterY:
-                    sendKey('PitchUpButton',queue=queue,hold=KEY_DEFAULT_DELAY-trimY)
-                else:
-                    sendKey('PitchDownButton',queue=queue,hold=KEY_DEFAULT_DELAY-trimY)
-    return
 
 def checkAlignWithTemplate(centerImg,circleImg): 
     result = False
@@ -213,22 +176,6 @@ def eventsHandler(q):
             sendHexKey(params[1],params[2],params[3],params[4],params[5])
         elif params[0] == 'DELAY':
             time.sleep(params[1])
-
-def sendKey(key, hold=None, repeat=1, repeat_delay=None, state=None, queue=None):
-    if queue is None : queue = eventsQueue
-    eventStruct = 'KEY',key,hold,repeat,repeat_delay,state
-    queue.put(eventStruct)
-    return
-
-def sendDelay(d):
-    eventStruct = 'DELAY',d
-    eventsQueue.put(eventStruct)
-    return
-
-def closeHandler():
-    eventStruct = 'ENDQUEUE'
-    eventsQueue.put(eventStruct)
-    return
 
 # Window Utils
 # def getNavPointsByCompass(compassImg,compassShowImg,compassHsv):
