@@ -96,7 +96,7 @@ def parseLogs(logPath=None):
 
                         elif logEvent == 'MissionAccepted': # Add to Mission List
                             journal['missions'].append(logJson['MissionID'])
-                        elif logEvent == 'MissionAbandoned' or logEvent == 'MissionCompleted' or logEvent == 'MissionFailed':
+                        elif (logEvent == 'MissionAbandoned' or logEvent == 'MissionCompleted' or logEvent == 'MissionFailed' )and logJson['MissionID'] in journal['missions']:
                             journal['missions'].remove(logJson['MissionID'])
                 
                     if journal['status'] != 'Docked' and journal['dockedStation'] is not None: journal['dockedStation'] = None

@@ -25,7 +25,8 @@ keysDict = {
     'UI_3': 0x04, # Key 3
     'UI_4': 0x05, # Key 4
     'enter': 0x1C, # Key RETURN(ENTER)
-    'esc': 0x01 # Key ESC
+    'esc': 0x01, # Key ESC
+    'pause': 0x19 # Key P
 }
 
 # Scancode Reference

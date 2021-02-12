@@ -49,6 +49,7 @@ class gameSession:
         self.status = self.journal['status']
         self.shipLoc = self.journal['location']
         self.shipTarget = self.journal['target']
+        self.missionList = self.journal['missions']
 
     def sendKey(self,key, hold=None, repeat=1, repeat_delay=None, state=None, block=False):
         keyStruct = 'KEY',key,hold,repeat,repeat_delay,state
@@ -65,13 +66,20 @@ class gameSession:
             time.sleep(delay)
             self.update()
         return delay
+    
+    def sleep(self,delay):
+        keyStruct = 'DELAY',delay
+        self.eventQueue.put(keyStruct)
+        time.sleep(delay)
+        self.update()
 
-    def align(self,update=False):
-        if update : self.update() # 调用一次update，因此align(self)应该在while循环内调用，这里默认为在外部循环中已经update，整个while只需要一次update，减少io
+    def align(self,update=False): # 基本只靠 Template Matching
+        if update: self.update() # 调用一次update，因此align(self)应该在while循环内调用，这里默认为在外部循环中已经update，整个while只需要一次update，减少io
+        if self.targetX == -1 or self.targetY == -1 : return True # 有时候会停着不动= =
         if self.isAligned == 1 or self.isFocused == 0: return False
         offsetX = abs(self.targetX-self.navCenter)
         offsetY = abs(self.targetY-self.navCenter)
-        if offsetX<0.2 and offsetY<0.2: return False # magic number: minimum range for SimpleBlobDetector
+        # if offsetX<0.2 and offsetY<0.2: return False # magic number: minimum range for SimpleBlobDetector
         if self.eventQueue.empty():
             trimX = trimY = 0.0
             if offsetX<3: trimX = ALIGN_TRIMM_DELAY
@@ -84,10 +92,10 @@ class gameSession:
                 else : self.sendKey('YawLeftButton',hold=KEY_DEFAULT_DELAY-trimX)
         return True
 
-    def sunAvoiding(self,fwdDelay=18): # Only do it once in a loop!
+    def sunAvoiding(self,fwdDelay=18,turnDelay=12): # Only do it once in a loop!
         self.sendKey('SpeedZero')
         self.sendDelay(2,block=True)
-        self.sendKey('PitchUpButton',hold=10,block=True)
+        self.sendKey('PitchUpButton',hold=turnDelay,block=True)
         self.sendKey('Speed100')
         self.sendDelay(fwdDelay,block=True)
         self.sendKey('SpeedZero')
@@ -100,6 +108,3 @@ class gameSession:
             print('SharedMemory Block Successfully Closed and Unlinked')
         self.imageProcess.terminate()
         self.eventProcess.terminate()
-
-
-        
