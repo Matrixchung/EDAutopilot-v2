@@ -5,8 +5,8 @@ map_bookmark = str(fileRootPath.joinpath("templates/map_bookmark.png"))
 map_bookmarkHL = str(fileRootPath.joinpath("templates/map_bookmark_highlight.png"))
 map_sothis = str(fileRootPath.joinpath("templates/robigo/map_sothis_a_5.png"))
 map_sothisHL = str(fileRootPath.joinpath("templates/robigo/map_sothis_a_5_highlight.png"))
-map_robigo = str(fileRootPath.joinpath("templates/robigo/map_robigomines.png"))
-map_robigoHL = str(fileRootPath.joinpath("templates/robigo/map_robigomines_highlight.png"))
+map_robigo = str(fileRootPath.joinpath("templates/robigo/map_robigom.png"))
+map_robigoHL = str(fileRootPath.joinpath("templates/robigo/map_robigom_highlight.png"))
 map_plotroute = str(fileRootPath.joinpath("templates/map_plot_route.png"))
 map_plotrouteHL = str(fileRootPath.joinpath("templates/map_plot_route_highlight.png"))
 
@@ -41,18 +41,18 @@ def setDest(session,dest):
     if session.guiFocus != 'GalaxyMap': 
         session.sendKey('UI_OpenGalaxyMap') # Toggle Map
         session.sleep(3)
-    bookmarkLoc = locateButtons(map_bookmark,map_bookmarkHL,confidence1=0.8,confidence2=0.8)
+    bookmarkLoc = locateButtons(map_bookmark,map_bookmarkHL,confidence1=0.7,confidence2=0.7)
     if bookmarkLoc[0] == -1:
         print("Error in setDest(): Cannot find any bookmark button")
-        return
+        return False
     pyautogui.click(bookmarkLoc)
     session.sleep(2)
     pyautogui.click(bookmarkLoc)
     session.sleep(2)
     pyautogui.move(50,0)
     if dest == 'Sothis': destLoc = locateButtons(map_sothis,map_sothisHL,confidence1=0.8,confidence2=0.8)
-    elif dest == 'Robigo': destLoc = locateButtons(map_robigo,map_robigoHL,confidence1=0.8,confidence2=0.8)
-    else : return
+    elif dest == 'Robigo': destLoc = locateButtons(map_robigo,map_robigoHL,confidence1=0.7,confidence2=0.7)
+    else : return False
     session.sleep(1)
     pyautogui.click(destLoc)
     session.sleep(1)
@@ -66,7 +66,7 @@ def setDest(session,dest):
         session.sendKey('space')
         session.sleep(3)
         session.sendKey('UI_OpenGalaxyMap')
-        return
+        return True
 
 class p(object):
     pass
@@ -93,8 +93,9 @@ if __name__ == '__main__': # Test
     failsafeState = ''
     if isDebug:
         statusImg = np.zeros((70,1600,3),np.uint8)
-    try:
-        while not keyboard.is_pressed('end'):
+
+    while not keyboard.is_pressed('end'):
+        try:
             session.update()
             # 输入区
             if keyboard.is_pressed('o'): align = True
@@ -106,8 +107,6 @@ if __name__ == '__main__': # Test
             if auto:
                 if progress.state!='initial':
                     elapsedTime = datetime.now()-startTime
-                if session.isFocused != 1: # Loss Focus
-                    pyautogui.click()
                 if keyboard.is_pressed('f10'): # Emergency Break
                     auto=False
                     failsafeState = progress.state
@@ -128,7 +127,7 @@ if __name__ == '__main__': # Test
                     if session.shipTarget != 'Wredguia TH-U c16-19': # select-target-sothis 
                         session.sleep(1)
                         setDest(session,'Sothis')
-                    session.sleep(1)
+                    session.sleep(2)
                     if session.shipTarget == 'Wredguia TH-U c16-19':
                         machine.set_state('undock')
                 
@@ -256,8 +255,8 @@ if __name__ == '__main__': # Test
                         session.sendDelay(1,block=True)
                         session.sendKey('esc') # back to main panel
                         session.sendDelay(3,block=True)
-                        result1 = locateImageOnScreen(sign_scassist,confidence=0.8) # re-check assist status
-                        result2 = locateImageOnScreen(sign_align_with_target,confidence=0.8)
+                        result1 = locateImageOnScreen(sign_scassist,confidence=0.6) # re-check assist status
+                        result2 = locateImageOnScreen(sign_align_with_target,confidence=0.6)
                         if result2[0]!=-1 or result1[0]!=-1: # Supercruise Assist active
                             # machine.set_state('first-waiting-for-arrive')
                             machine.set_state('first-auxiliary-align')
@@ -290,7 +289,7 @@ if __name__ == '__main__': # Test
                     if session.shipTarget != 'Wredguia WD-K d8-65': # select-target-sothis 
                         session.sleep(1)
                         setDest(session,'Robigo')
-                    session.sendDelay(3,block=True)
+                    session.sleep(2)
                     if session.shipTarget == 'Wredguia WD-K d8-65':
                         machine.set_state('sothis-a-5-avoiding')
 
@@ -390,8 +389,8 @@ if __name__ == '__main__': # Test
                         session.sendDelay(1,block=True)
                         session.sendKey('esc') # back to main panel
                         session.sendDelay(3,block=True)
-                        result1 = locateImageOnScreen(sign_scassist,confidence=0.8) # re-check assist status
-                        result2 = locateImageOnScreen(sign_align_with_target,confidence=0.8)
+                        result1 = locateImageOnScreen(sign_scassist,confidence=0.6) # re-check assist status
+                        result2 = locateImageOnScreen(sign_align_with_target,confidence=0.6)
                         if result2[0]!=-1 or result1[0]!=-1: # Supercruise Assist active
                             # machine.set_state('second-waiting-for-arrive')
                             machine.set_state('second-auxiliary-align')
@@ -520,7 +519,7 @@ if __name__ == '__main__': # Test
                         auto=False
                         machine.set_state('initial')
                         continue
-    
+
             if align: align = session.align()
             if isDebug:
                 cv2.putText(statusImg,'%s'%progress.state,(10,30),cv2.FONT_HERSHEY_DUPLEX,1,(0,255,0))
@@ -534,7 +533,7 @@ if __name__ == '__main__': # Test
                 cv2.imshow('status',statusImg)
                 statusImg.fill(0)
                 cv2.waitKey(1)
-    except:
-        traceback.print_exc()
-    
+        except:
+            traceback.print_exc()
+
     session.stop()
