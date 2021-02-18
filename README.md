@@ -15,8 +15,14 @@
  ``` python ./robigo.py```
  4. When you got your missions at Robigo Mines,simply click the Home button on your keyboard,and you can just set up a 15-minute timer and then go back to claim the rewards(depends on your internet connection)
  5. You can terminate the running process anytime when you click the End button.
+ 6. You can leave the process unsupervised,but you should keep the mouse cursor on the Client Screen and manually takeover when it comes to interdict you
 # Useful Settings
- - Optimized Graphics Settings : 1600x900 Windowed and in Primary Screen (at least mid quality or some functions may be corrupted)
+ - Optimized Graphics Settings : 
+     1. 1600x900 Windowed and in Primary Screen (at least mid quality or some functions may be corrupted)
+	 2. 1920x1080 Desktop Resolution
+ - In-Game Settings:
+     1. Set the Navigation Filter to ONLY STATIONS and POINTS OF INTEREST
+	 2. Bookmark Sothis A 5 and Robigo Mines in the Galaxy Map
  - Robigo Mission preferred ship: Python https://s.orbis.zone/ceng
  - FOV Setting: (YOUR_APPDATA_PATH/Local/Frontier Developments/Elite Dangerous/Options/Graphics/Settings.xml)
  ```<FOV>56.249001</FOV>```

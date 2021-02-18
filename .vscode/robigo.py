@@ -1,6 +1,6 @@
 from game import *
 import transitions
-
+pyautogui.FAILSAFE=False
 map_bookmark = str(fileRootPath.joinpath("templates/map_bookmark.png"))
 map_bookmarkHL = str(fileRootPath.joinpath("templates/map_bookmark_highlight.png"))
 map_sothis = str(fileRootPath.joinpath("templates/robigo/map_sothis_a_5.png"))
@@ -45,9 +45,10 @@ def setDest(session,dest):
     if bookmarkLoc[0] == -1:
         print("Error in setDest(): Cannot find any bookmark button")
         return False
-    pyautogui.click(bookmarkLoc)
+    pyautogui.moveTo(bookmarkLoc)
+    pyautogui.click()
     session.sleep(2)
-    pyautogui.click(bookmarkLoc)
+    pyautogui.doubleClick(bookmarkLoc)
     session.sleep(2)
     pyautogui.move(50,0)
     if dest == 'Sothis': destLoc = locateButtons(map_sothis,map_sothisHL,confidence1=0.8,confidence2=0.8)
@@ -211,7 +212,7 @@ if __name__ == '__main__': # Test
                 elif progress.state=='first-approaching':
                     if not session.align():
                         session.sendKey('Speed100')
-                        session.sendDelay(40,block=True) # magic number:wait the ship approaching Sirius Atmospherics
+                        session.sendDelay(58,block=True) # magic number:wait the ship approaching Sirius Atmospherics
                         session.align()
                         session.sendKey('SpeedZero')
                         machine.set_state('first-enable-assist')
@@ -241,8 +242,8 @@ if __name__ == '__main__': # Test
                         session.sendDelay(1,block=True)
                         for i in range(20): 
                             # 因为使得POI最近的距离实在不好控制 所以遍历导航页的项目 选取 Sirius Atmospherics 
-                            res1 = locateImageOnScreen(tab_sirius,confidence=0.7)
-                            res2 = locateImageOnScreen(tab_siriusHL,confidence=0.7)
+                            res1 = locateImageOnScreen(tab_sirius,confidence=0.6)
+                            res2 = locateImageOnScreen(tab_siriusHL,confidence=0.6)
                             if res2[0]!=-1: # Match Found
                                 break
                             if res2[0]==-1 or res1[0]!=-1:
@@ -375,8 +376,8 @@ if __name__ == '__main__': # Test
                         session.sendKey('UI_Up',hold=2,block=True) # small trick:hold the button to get to the top
                         for i in range(10): # maximum 10 targets in a single tab
                             # 因为使得POI最近的距离实在不好控制 所以遍历导航页的项目 选取 Robigo Mines
-                            res1 = locateImageOnScreen(tab_robigomines,confidence=0.7)
-                            res2 = locateImageOnScreen(tab_robigominesHL,confidence=0.7)
+                            res1 = locateImageOnScreen(tab_robigomines,confidence=0.6)
+                            res2 = locateImageOnScreen(tab_robigominesHL,confidence=0.6)
                             if res2[0]!=-1: # Match Found
                                 break
                             if res2[0]==-1 or res1[0]!=-1:
@@ -453,10 +454,8 @@ if __name__ == '__main__': # Test
                 
                 elif progress.state=='waiting-for-docked':
                     if (session.status=='Docked'):
-                        auto=False
-                        failsafeState = ''
                         session.sendDelay(2,block=True)
-                        machine.set_state('initial')
+                        machine.set_state('claim-task-reward')
                 
                 elif progress.state=='claim-task-reward': # Auto claim task rewards
                     if session.guiFocus != 'NoFocus' and session.guiFocus != 'StationServices': 
@@ -470,55 +469,49 @@ if __name__ == '__main__': # Test
                         session.sendDelay(1,block=True)
                         session.sendKey('UI_Down')
                         session.sendDelay(2,block=True)
-                        if locateImageOnScreen(button_starport_service,confidence=0.6)[0]==-1: # Not starport service
-                            session.sendKey('UI_Up')
-                            print('claim-task-reward:task claiming failed')
-                            auto=False
-                            machine.set_state('initial')
-                            continue
-                        session.sendKey('space')
-                        session.sendDelay(5,block=True)
+                        session.sendKey('space') # auto fuel and go to Station Services
+                        session.sendDelay(5,block=True) 
                     if session.guiFocus == 'StationServices':
                         session.sendKey('UI_Down',hold=3) # trick : make cursor stops at EXIT
                         session.sendDelay(1,block=True)
                         session.sendKey('UI_Up',repeat=3) # goto passenger lounge
                         session.sendDelay(0.5,block=True)
-                        session.sendKey('space')
-                        session.sendDelay(10,block=True) # enter passenger lounge
+                        session.sendKey('space') # enter passenger lounge
+                        # session.sendDelay(10,block=True) 
+                    #     session.sendKey('UI_Left',repeat=2)
+                    #     session.sendDelay(1,block=True)
+                    #     session.sendKey('UI_Down',repeat=5) # at back button
+                    #     for i in range(3): # 3 mission providers
+                    #         session.sendKey('UI_Up')
+                    #         session.sendDelay(1,block=True)
+                    #         session.sendKey('space')
+                    #         session.sendDelay(1,block=True)
+                    #         for j in range(10): # failsafe number 10 (in fact the max mission number is 7)
+                    #             session.sleep(0.5)
+                    #             result = locateImageOnScreen(button_complete_mission,confidence=0.6)
+                    #             if result[0]==-1: break # No more mission
+                    #             pyautogui.moveTo(result)
+                    #             session.sendDelay(2,block=True)
+                    #             result1 = locateImageOnScreen(button_complete_missionHL,confidence=0.6)
+                    #             if result1[0]==-1 : continue
+                    #             pyautogui.click(result1)
+                    #             session.sendKey('UI_Left',repeat=4)
+                    #             session.sendDelay(0.5,block=True)
+                    #             session.sendKey('space')
+                    #             session.sendDelay(3,block=True)
+                    #             session.sendKey('space')
+                    #         session.sendKey('UI_Left')
+                    #         session.sendDelay(1,block=True)
                         
-                        session.sendKey('UI_Left',repeat=2)
-                        session.sendDelay(1,block=True)
-                        session.sendKey('UI_Down',repeat=5) # at back button
-                        for i in range(3): # 3 mission providers
-                            session.sendKey('UI_Up')
-                            session.sendDelay(1,block=True)
-                            session.sendKey('space')
-                            session.sendDelay(1,block=True)
-                            for j in range(10): # failsafe number 10 (in fact the max mission number is 7)
-                                session.sleep(0.5)
-                                result = locateImageOnScreen(button_complete_mission,confidence=0.6)
-                                if result[0]==-1: break # No more mission
-                                pyautogui.moveTo(result)
-                                session.sendDelay(2,block=True)
-                                result1 = locateImageOnScreen(button_complete_missionHL,confidence=0.6)
-                                if result1[0]==-1 : continue
-                                pyautogui.click(result1)
-                                session.sendKey('UI_Left',repeat=4)
-                                session.sendDelay(0.5,block=True)
-                                session.sendKey('space')
-                                session.sendDelay(3,block=True)
-                                session.sendKey('space')
-                            session.sendKey('UI_Left')
-                            session.sendDelay(1,block=True)
-                        
-                        print(len(session.missionList))
-                        auto=False
-                        machine.set_state('initial')
-                    else:
-                        print('claim-task-reward:enter stationservice failed')
-                        auto=False
-                        machine.set_state('initial')
-                        continue
+                    #     print(len(session.missionList))
+                    auto=False
+                    failsafeState = ''
+                    machine.set_state('initial')
+                    # else:
+                    #     print('claim-task-reward:enter stationservice failed')
+                    #     auto=False
+                    #     machine.set_state('initial')
+                    #     continue
 
             if align: align = session.align()
             if isDebug:
