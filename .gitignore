@@ -3,3 +3,4 @@
 /*.png
 *.deprecated
 .vscode/test.py
+test/*

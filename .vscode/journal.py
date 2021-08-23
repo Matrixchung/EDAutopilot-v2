@@ -13,7 +13,8 @@ journal = {
     'dockedStation': '',
     'lastTarget': '',
     'remainingJumpsInRoute': 0,
-    'target': ''
+    'target': '',
+    'isUnderAttack': False # Interdiction and Under Attack check
 }
 # STATUS: normal,undocking,docking,startUndock,startDock,docked,startJump,finishJump
 def getNavRoute(routePath=None):
@@ -41,21 +42,35 @@ def parseLogs(logPath=None):
         with open(logPath, 'r', encoding='utf-8') as f:
             for line in f:
                 logJson = json.loads(line)
-                if logJson['event'] == 'FSSSignalDiscovered': continue # Filter the Fleet Carrier Signals (too many)
+                logEvent = logJson['event']
+                # Event Filters start
+                if logEvent == "FSSSignalDiscovered" or \ 
+                   logEvent == "Friends" or \
+                   logEvent == "Powerplay" or \
+                   logEvent == "NpcCrewPaidWage" or \
+                   logEvent == "MissionRedirected" or \
+                   logEvent == "Loadout" or \
+                   logEvent == "Statistics" or \
+                   logEvent == "Materials":
+                   continue
+                # Event Filters end
                 linesRead += 1
                 if linesRead>latestLogLine:
                     logTime = datetime.strptime(logJson['timestamp'],UTC_FORMAT)
                     logTime = logTime.timestamp()
                     if logTime>=journal['latestLogUpdateTime']: # should update
                         latestLogLine += 1
-                        logEvent = logJson['event']
                         journal['latestLogUpdateTime']=logTime
-
                         # print(logEvent+' ') 
                         # print(logTime)
 
-                        if logEvent == 'Music': # music playing
-                            if logJson['MusicTrack'] == 'DestinationFromHyperspace' and journal['target'] is not None: # Finish multi-hop route
+                        if (logEvent == 'ReceiveText' and ('CargoHunter' in logJson['Message'] or 'PassengerHunter' in logJson['Message'] or 'AttackDutyStart' in logJson['Message'])) or logEvent == 'Interdicted' or logEvent == 'UnderAttack': # May be interdicted!
+                            journal['isUnderAttack'] = True
+                        
+                        elif logEvent == 'Music': # music playing
+                            if logJson['MusicTrack'] == 'Combat_Dogfight' and journal['isUnderAttack'] not True: # Under attack!
+                                journal['isUnderAttack'] = True
+                            elif logJson['MusicTrack'] == 'DestinationFromHyperspace' and journal['target'] is not None: # Finish multi-hop route
                                 journal['target']=journal['lastTarget']= None 
                             elif logJson['MusicTrack'] == 'MainMenu': journal['status'] = 'MainMenu'
                             elif logJson['MusicTrack'] == 'DockingComputer': 
