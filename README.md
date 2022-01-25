@@ -81,3 +81,5 @@
 		</DesaturateTest>
 	</GUIColour>
  ```
+# Credits
+ - @skai2 https://github.com/skai2/EDAutopilot for initial idea and DirectInput system
