@@ -77,13 +77,13 @@ if __name__ == '__main__': # Test
     stateOverride = '' # Debugging Options
 
     states = ['initial','get-mission','mission-received','select-target-sothis','undock','thrust-up','first-align','first-jump', # in Robigo
-    'first-sc','second-align','second-jump', # in Wredguia TH-U c16-19
-    'second-sc','third-align','first-approaching','first-enable-assist','first-waiting-for-arrive','first-auxiliary-align', # in sothis and sothis 5 (Sirius Atmospherics)
-    'target-beacon','waiting-for-beacon','select-target-robigo','sothis-a-5-avoiding','fourth-align','third-jump', # in sirius atmospherics
-    'third-sc','fifth-align','fourth-jump', # in Wredguia WD-K d8-65
-    'fourth-sc','sixth-align','second-enable-assist','second-auxiliary-align','second-waiting-for-arrive','approach-station','trigger-autodock','waiting-for-docked','claim-task-reward' # back to robigo
+    'first-sc','second-align','second-jump', # in Wredguia KU-O b33-0
+    'second-sc','third-align','first-approaching','first-enable-assist','first-waiting-for-arrive','first-auxiliary-align', # in Sothis and Sothis 5 (Sirius Atmospherics)
+    'target-beacon','waiting-for-beacon','select-target-robigo','sothis-a-5-avoiding','fourth-align','third-jump', # in Sirius Atmospherics
+    'third-sc','fifth-align','fourth-jump', # in Wredguia LU-O b33-0
+    'fourth-sc','sixth-align','second-enable-assist','second-auxiliary-align','second-waiting-for-arrive','approach-station','trigger-autodock','waiting-for-docked','claim-task-reward' # back to Robigo
     ]
-    initialState = 'initial' # do not change!
+    initialState = 'initial' # do not change if not in debug! (default:initial)
     if stateOverride != '':initialState=stateOverride
     machine = transitions.Machine(model=progress,states=states,initial=initialState)
     session = gameSession(debug=isDebug)
@@ -117,7 +117,7 @@ if __name__ == '__main__': # Test
                     if len(session.missionList) == 0 : # 'get-mission'
                         # machine.set_state('get-mission')
                         pass
-                        if isDebug: machine.set_state('mission-received') # allow launch without missions (isDebug)
+                        if isDebug: machine.set_state('mission-received') # allow launch without missions (Debug)
                     else :
                         machine.set_state('mission-received')
                 
@@ -125,11 +125,12 @@ if __name__ == '__main__': # Test
                     pass # WIP
 
                 elif progress.state == 'mission-received': # elif 确保一次大的while循环中只执行一次状态判断，避免状态转移导致的update滞后
-                    if session.shipTarget != 'Wredguia TH-U c16-19': # select-target-sothis 
+                    # !!! shipTarget are based on your ship's jumping capability, so change it if necessary !!!
+                    if session.shipTarget != 'Wredguia KU-O b33-0': # select-target-sothis 
                         session.sleep(1)
                         setDest(session,'Sothis')
                     session.sleep(2)
-                    if session.shipTarget == 'Wredguia TH-U c16-19':
+                    if session.shipTarget == 'Wredguia KU-O b33-0':
                         machine.set_state('undock')
                 
                 elif progress.state == 'undock':
@@ -188,9 +189,9 @@ if __name__ == '__main__': # Test
                 elif progress.state=='second-jump':
                     # Enable FSD
                     if (('FSDJump' not in session.stateList and 'FSDCharging' not in session.stateList) and
-                        'Supercruise' in session.stateList or 'FSDCooldown' in session.stateList) and session.shipLoc!='Wredguia TH-U c16-19': # Waiting for jump complete
+                        'Supercruise' in session.stateList or 'FSDCooldown' in session.stateList) and session.shipLoc!='Wredguia KU-O b33-0': # Waiting for jump complete
                         machine.set_state('second-sc')
-                    elif 'FSDCharging' not in session.stateList and session.shipLoc=='Wredguia TH-U c16-19' and locateImageOnScreen(sign_throttle_up,confidence=0.6)[0]==-1: # need charge
+                    elif 'FSDCharging' not in session.stateList and session.shipLoc=='Wredguia KU-O b33-0' and locateImageOnScreen(sign_throttle_up,confidence=0.6)[0]==-1: # need charge
                         session.sendKey('EnableFSD')
                         session.sendDelay(1,block=True) # Just for update the stateList
                         session.sendDelay(15,block=True)
@@ -287,11 +288,11 @@ if __name__ == '__main__': # Test
                         machine.set_state('select-target-robigo')
 
                 elif progress.state=='select-target-robigo':
-                    if session.shipTarget != 'Wredguia WD-K d8-65': # select-target-sothis 
+                    if session.shipTarget != 'Wredguia LU-O b33-0': # select-target-sothis 
                         session.sleep(1)
                         setDest(session,'Robigo')
                     session.sleep(2)
-                    if session.shipTarget == 'Wredguia WD-K d8-65':
+                    if session.shipTarget == 'Wredguia LU-O b33-0':
                         machine.set_state('sothis-a-5-avoiding')
 
                 elif progress.state == 'sothis-a-5-avoiding':
@@ -331,9 +332,9 @@ if __name__ == '__main__': # Test
                 elif progress.state=='fourth-jump':
                     # Enable FSD
                     if (('FSDJump' not in session.stateList and 'FSDCharging' not in session.stateList) and
-                        'Supercruise' in session.stateList or 'FSDCooldown' in session.stateList) and session.shipLoc !='Wredguia WD-K d8-65' : # Waiting for jump complete
+                        'Supercruise' in session.stateList or 'FSDCooldown' in session.stateList) and session.shipLoc !='Wredguia LU-O b33-0' : # Waiting for jump complete
                         machine.set_state('fourth-sc')
-                    elif 'FSDCharging' not in session.stateList and session.shipLoc=='Wredguia WD-K d8-65' and locateImageOnScreen(sign_throttle_up,confidence=0.6)[0]==-1: # need charge
+                    elif 'FSDCharging' not in session.stateList and session.shipLoc=='Wredguia LU-O b33-0' and locateImageOnScreen(sign_throttle_up,confidence=0.6)[0]==-1: # need charge
                         session.sendKey('EnableFSD')
                         session.sendDelay(1,block=True) # Just for update the stateList
                         session.sendDelay(15,block=True)
@@ -517,10 +518,10 @@ if __name__ == '__main__': # Test
             if isDebug:
                 cv2.putText(statusImg,'%s'%progress.state,(10,30),cv2.FONT_HERSHEY_DUPLEX,1,(0,255,0))
                 # cv2.putText(statusImg,'GUIFocus:%s'%session.guiFocus,(10,30),cv2.FONT_HERSHEY_DUPLEX,1,(0,255,0))
-                cv2.putText(statusImg,"align:%s"%session.isAligned,(500,30),cv2.FONT_HERSHEY_DUPLEX,1,(0,255,0))
-                cv2.putText(statusImg,'Status:%s'%session.status,(650,30),cv2.FONT_HERSHEY_DUPLEX,1,(0,255,0))
-                cv2.putText(statusImg,'Loc:%s'%session.shipLoc,(900,30),cv2.FONT_HERSHEY_DUPLEX,1,(0,255,0))
-                cv2.putText(statusImg,'Target:%s'%session.shipTarget,(1300,30),cv2.FONT_HERSHEY_DUPLEX,1,(0,255,0))
+                cv2.putText(statusImg,"align:%s"%int(session.isAligned),(470,30),cv2.FONT_HERSHEY_DUPLEX,1,(0,255,0))
+                cv2.putText(statusImg,'Status:%s'%session.status,(580,30),cv2.FONT_HERSHEY_DUPLEX,1,(0,255,0))
+                cv2.putText(statusImg,'Loc:%s'%session.shipLoc,(870,30),cv2.FONT_HERSHEY_DUPLEX,1,(0,255,0))
+                cv2.putText(statusImg,'Target:%s'%session.shipTarget,(1250,30),cv2.FONT_HERSHEY_DUPLEX,1,(0,255,0))
                 # cv2.putText(statusImg,'state:%s'%session.stateList,(10,60),cv2.FONT_HERSHEY_DUPLEX,1,(0,255,0))
                 cv2.putText(statusImg,'%s'%elapsedTime,(10,60),cv2.FONT_HERSHEY_DUPLEX,1,(0,255,0))
                 cv2.imshow('status',statusImg)

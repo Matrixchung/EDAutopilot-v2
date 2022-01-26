@@ -2,7 +2,7 @@
  - An autopilot bot for Elite:Dangerous based on OpenCV+Python.
 # What can it do?
  - Auto align with the displayed navigation circle
- - Run the Robigo Sightseeing mission automatically,you only have to select the missions and claim rewards
+ - Run the Robigo Sightseeing mission automatically, you only have to select the missions and claim rewards
  - Provide a gameSession API which you can write your own autonomous script
  - You can fork it as you wish to make changes
 # How to use it?
@@ -10,12 +10,12 @@
  ```
  git clone https://github.com/Matrixchung/EDAutopilot.git
  ```
- 2. Make sure you have applied the Useful Settings (Best recommended,because I write this entire project in those settings)
- 3. Go to .vscode folder and run the script robigo.py (For Robigo Sightseeing Mission,or you can write your own)
+ 2. Make sure you have applied the Useful Settings (Best recommended, because I write this entire project in those settings)
+ 3. Go to .vscode folder and run the script robigo.py (For Robigo Sightseeing Mission, or you can write your own)
  ``` python ./robigo.py```
- 4. When you got your missions at Robigo Mines,simply click the Home button on your keyboard,and you can just set up a 15-minute timer and then go back to claim the rewards(depends on your internet connection)
+ 4. When you got your missions at Robigo Mines, simply click the Home button on your keyboard,and you can just set up a 15-minute timer and then go back to claim the rewards(depends on your internet connection)
  5. You can terminate the running process anytime when you click the End button.
- 6. You can leave the process unsupervised,but you should keep the mouse cursor on the Client Screen and manually takeover when it comes to interdict you
+ 6. You can leave the process unsupervised, but you should keep the mouse cursor on the Client Screen and manually takeover when it comes to interdict you
 # Useful Settings
  - Optimized Graphics Settings : 
      1. 1600x900 Windowed and in Primary Screen (at least mid quality or some functions may be corrupted)
@@ -33,8 +33,8 @@
     'YawRightButton': 0x20, # Key D
     'PitchUpButton': 0xB5, # NUM /
     'PitchDownButton': 0x37, # NUM *
-    'RollLeftButton': 0x00, # Undefined
-    'RollRightButton': 0x00, # Undefined
+    'RollLeftButton': 0x4E, # NUM +
+    'RollRightButton': 0x9C, # NUM ENTER
     'EnableFSD': 0x24, # Key J
     'EngineBoost': 0x0F, # Key Tab
     'Speed100': 0x47, # NUM 7

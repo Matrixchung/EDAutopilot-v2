@@ -41,21 +41,22 @@ class gameSession:
             print('Image and Event Processes Started')
         self.update()
     
-    def update(self): # 从io和图像处理模块读取数据
+    def update(self, full=True): # 从io和图像处理模块读取数据
         self.targetX,self.targetY,self.navCenter,self.isAligned,self.isFocused = self.shmCoordArray
-        self.journal = setJournal()
-        self.stateList = showAllTrueStatus()
-        self.guiFocus = getGuiFocus()
-        self.status = self.journal['status']
-        self.shipLoc = self.journal['location']
-        self.shipTarget = self.journal['target']
-        self.missionList = self.journal['missions']
+        if full: # do full update
+            self.journal = setJournal()
+            self.stateList = showAllTrueStatus()
+            self.guiFocus = getGuiFocus()
+            self.status = self.journal['status']
+            self.shipLoc = self.journal['location']
+            self.shipTarget = self.journal['target']
+            self.missionList = self.journal['missions']
 
     def sendKey(self,key, hold=None, repeat=1, repeat_delay=None, state=None, block=False):
         keyStruct = 'KEY',key,hold,repeat,repeat_delay,state
         self.eventQueue.put(keyStruct)
         if block and hold is not None: 
-            time.sleep(hold)
+            self.sleep(hold)
             self.update()
         return key
     
@@ -63,14 +64,21 @@ class gameSession:
         keyStruct = 'DELAY',delay
         self.eventQueue.put(keyStruct)
         if block: 
-            time.sleep(delay)
+            self.sleep(delay)
             self.update()
         return delay
     
-    def sleep(self,delay):
+    def sleep(self, delay, updateDelay=SLEEP_UPDATE_DELAY):
+        nowTime = time.time()
+        endTime = nowTime+delay
+        updateTime = nowTime+updateDelay
         keyStruct = 'DELAY',delay
         self.eventQueue.put(keyStruct)
-        time.sleep(delay)
+        while nowTime<endTime: # new "blockless update" sleep method
+            nowTime = time.time()
+            if nowTime>=updateTime: # should update
+                self.update()
+                updateTime += updateDelay
         self.update()
 
     def align(self,update=False): # 基本只靠 Template Matching

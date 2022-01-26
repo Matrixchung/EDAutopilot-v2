@@ -44,7 +44,7 @@ def parseLogs(logPath=None):
                 logJson = json.loads(line)
                 logEvent = logJson['event']
                 # Event Filters start
-                if logEvent == "FSSSignalDiscovered" or \ 
+                if logEvent == "FSSSignalDiscovered" or \
                    logEvent == "Friends" or \
                    logEvent == "Powerplay" or \
                    logEvent == "NpcCrewPaidWage" or \
@@ -68,7 +68,7 @@ def parseLogs(logPath=None):
                             journal['isUnderAttack'] = True
                         
                         elif logEvent == 'Music': # music playing
-                            if logJson['MusicTrack'] == 'Combat_Dogfight' and journal['isUnderAttack'] not True: # Under attack!
+                            if logJson['MusicTrack'] == 'Combat_Dogfight' and journal['isUnderAttack'] is not True: # Under attack!
                                 journal['isUnderAttack'] = True
                             elif logJson['MusicTrack'] == 'DestinationFromHyperspace' and journal['target'] is not None: # Finish multi-hop route
                                 journal['target']=journal['lastTarget']= None 

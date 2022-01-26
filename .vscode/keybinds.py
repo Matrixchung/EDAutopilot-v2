@@ -3,8 +3,8 @@ keysDict = {
     'YawRightButton': 0x20, # Key D
     'PitchUpButton': 0xB5, # NUM /
     'PitchDownButton': 0x37, # NUM *
-    'RollLeftButton': 0x00, # Undefined
-    'RollRightButton': 0x00, # Undefined
+    'RollLeftButton': 0x4E, # NUM +
+    'RollRightButton': 0x9C, # NUM ENTER
     'EnableFSD': 0x24, # Key J
     'EngineBoost': 0x0F, # Key Tab
     'Speed100': 0x47, # NUM 7

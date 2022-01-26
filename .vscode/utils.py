@@ -3,10 +3,7 @@ import pyautogui
 import keyboard
 import win32gui
 import win32file
-import sys
 import pathlib
-import re
-import array
 import cv2
 import time
 import numpy as np
@@ -23,6 +20,7 @@ KEY_DEFAULT_DELAY = 0.120
 KEY_REPEAT_DELAY = 0.200
 DELAY_BETWEEN_KEYS = 1.5
 ALIGN_DEAD_ZONE = 1.5
+SLEEP_UPDATE_DELAY = 0.1
 globalWindowName = "Elite - Dangerous (CLIENT)"
 fileRootPath = pathlib.Path.cwd()
 
