@@ -23,7 +23,7 @@
  - In-Game Settings:
      1. Set the Navigation Filter to ONLY STATIONS and POINTS OF INTEREST
 	 2. Bookmark Sothis A 5 and Robigo Mines in the Galaxy Map
- - Robigo Mission preferred ship: Python https://s.orbis.zone/ceng
+ - Robigo Mission preferred ship: Python https://s.orbis.zone/i1dm
  - FOV Setting: (YOUR_APPDATA_PATH/Local/Frontier Developments/Elite Dangerous/Options/Graphics/Settings.xml)
  ```<FOV>56.249001</FOV>```
  - Keybinds: (You can probably edit it in keybinds.py)
