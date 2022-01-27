@@ -10,6 +10,9 @@ class gameSession:
     status = ''
     shipLoc = ''
     shipTarget = ''
+    shipEmergency = False # Under attack / interdicted / being scanned
+    imageProcessTime = 1.0
+    windowCoord = (0,0) # Left and Top coord
 
     def __init__(self,gameName=globalWindowName,name=None,debug=False):
         if name is None: self.name='Session 1'
@@ -42,11 +45,15 @@ class gameSession:
         self.update()
     
     def update(self, full=True): # 从io和图像处理模块读取数据
-        self.targetX,self.targetY,self.navCenter,self.isAligned,self.isFocused = self.shmCoordArray
+        windowLeftX = 0
+        windowTopY = 0
+        self.targetX,self.targetY,self.navCenter,self.isAligned,self.isFocused,self.imageProcessTime,windowLeftX,windowTopY = self.shmCoordArray
+        self.windowCoord = (windowLeftX,windowTopY)
         if full: # do full update
             self.journal = setJournal()
             self.stateList = showAllTrueStatus()
             self.guiFocus = getGuiFocus()
+            self.shipEmergency = self.journal['isUnderAttack'] or self.journal['isBeingScanned']
             self.status = self.journal['status']
             self.shipLoc = self.journal['location']
             self.shipTarget = self.journal['target']
@@ -57,7 +64,6 @@ class gameSession:
         self.eventQueue.put(keyStruct)
         if block and hold is not None: 
             self.sleep(hold)
-            self.update()
         return key
     
     def sendDelay(self,delay,block=False):
@@ -65,19 +71,16 @@ class gameSession:
         self.eventQueue.put(keyStruct)
         if block: 
             self.sleep(delay)
-            self.update()
         return delay
     
     def sleep(self, delay, updateDelay=SLEEP_UPDATE_DELAY):
         nowTime = time.time()
         endTime = nowTime+delay
         updateTime = nowTime+updateDelay
-        keyStruct = 'DELAY',delay
-        self.eventQueue.put(keyStruct)
-        while nowTime<endTime: # new "blockless update" sleep method
+        while nowTime < endTime: # new "blockless update" sleep method
             nowTime = time.time()
-            if nowTime>=updateTime: # should update
-                self.update()
+            if nowTime >= updateTime: # should update
+                self.update(full=False) # half-full update (no I/O) in sleep circuit
                 updateTime += updateDelay
         self.update()
 

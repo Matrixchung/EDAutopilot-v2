@@ -1,10 +1,12 @@
 from multiprocessing import Process,Queue,shared_memory
 import pyautogui
 import keyboard
+import os
 import win32gui
 import win32file
 import pathlib
 import cv2
+import logging
 import time
 import numpy as np
 import traceback
@@ -18,9 +20,11 @@ from status import *
 ALIGN_TRIMM_DELAY = 0.030
 KEY_DEFAULT_DELAY = 0.120
 KEY_REPEAT_DELAY = 0.200
+MOUSE_CLICK_DELAY = 0.200
 DELAY_BETWEEN_KEYS = 1.5
-ALIGN_DEAD_ZONE = 1.5
+ALIGN_DEAD_ZONE = 1.4
 SLEEP_UPDATE_DELAY = 0.1
+
 globalWindowName = "Elite - Dangerous (CLIENT)"
 fileRootPath = pathlib.Path.cwd()
 
@@ -47,29 +51,6 @@ hsvNavPointUp = np.array([179,254,254]) # Filter navPoints
 destCircleImg = cv2.imread("templates/dest_circle.png",0)
 
 ## In-Game Utils
-def goToPanel(panelName,subPanelName=None,panelImg=None):
-    # Three conditions : 1) not at the panelName,go to panelName
-    # 2) not at the panelName,go to subPanelName
-    # 3) at the panelName,go to subPanelName
-    currentPanel = getGuiFocus()
-    key = None
-    if currentPanel != panelName : # cond 1 and 2
-        if subPanelName is not None and panelImg is not None: # cond 2
-            if panelName == 'Panel_1': 
-                goToPanel('Panel_1') # GOTO cond 3 (to get panelImg)
-        else: # cond 1
-            if panelName == 'Panel_1': key = ('UI_1',)
-            elif panelName == 'Panel_2': key = ('UI_2',)
-            elif panelName == 'Panel_3': key = ('UI_3',)
-            elif panelName == 'Panel_4': key = ('UI_4',)
-    elif subPanelName is not None and panelImg is not None: # cond 3
-        pass
-    if key is not None:
-        sendKeySequence(key)
-
-def getUICursor(panelName,panelImg):
-    if panelName == 'Panel_1':
-        pass
 
 def getSunPercent(outsideImage):
     return # WIP
@@ -96,11 +77,6 @@ def sendHexKey(key, hold=None, repeat=1, repeat_delay=None, state=None):
         else:
             time.sleep(0.08)
 
-def sendKeySequence(keys, delay=DELAY_BETWEEN_KEYS):
-    # the param 'keys' is a TUPLE
-    for key in keys:
-        sendKey(key)
-        sendDelay(delay)
 
 def checkAlignWithTemplate(centerImg,circleImg): 
     result = False
@@ -131,8 +107,9 @@ def imageProcessing(coordShrName):
         try: # already has windowHwnd
             gameCoord = getWindowRectByHwnd(windowHwnd)
         except: # gameHwnd changed
-           gameCoord,windowHwnd = getWindowRectByName(globalWindowName)
+            gameCoord,windowHwnd = getWindowRectByName(globalWindowName)
         try:
+            startTime = time.time()
             isFocused = isForegroundWindow(globalWindowName,windowHwnd)
             img = pyautogui.screenshot(region=gameCoord)
         
@@ -159,14 +136,15 @@ def imageProcessing(coordShrName):
             (targetX,targetY),navCenter = getNavPointsByCompass(compassImg,compassHsv)
 
             shr_coord = shared_memory.SharedMemory(name=coordShrName)
-            coordArray = np.ndarray(shape=5,dtype=np.float64,buffer=shr_coord.buf)
-            coordArray[:] = [targetX,targetY,navCenter,isAligned,isFocused]  
-        except :
+            coordArray = np.ndarray(shape=8,dtype=np.float64,buffer=shr_coord.buf)
+            elapsedTime = time.time()-startTime
+            coordArray[:] = [targetX,targetY,navCenter,isAligned,isFocused,elapsedTime,gameCoord[0],gameCoord[1]]  
+        except:
             pass
             # traceback.print_exc()
 
-def createSharedCoordsBlock(name='ImgCoords'): # targetX,targetY,navCenter,isAligned,isFocused
-    a = np.zeros(5)
+def createSharedCoordsBlock(name='ImgCoords'): # targetX,targetY,navCenter,isAligned,isFocused,elapsedTime,windowLeftX,windowTopY
+    a = np.zeros(8)
     shr = shared_memory.SharedMemory(create=True,name=name,size=a.nbytes)
     npArray = np.ndarray(a.shape,dtype=np.float64,buffer=shr.buf)
     npArray[:] = a[:]
@@ -247,6 +225,7 @@ def getNavPointsByCompass(compassImg,compassHsv): # NO IMAGE RETURN NEEDED
         # navShowImg = None
     # return (targetX,targetY),navCenter,compassShowImg,navShowImg
     return (targetX,targetY),navCenter # NO IMAGE RETURN NEEDED
+
 def screenCapture(toFile=True):
     gameCoord,hwnd = getWindowRectByName(globalWindowName)
     if toFile is True:
@@ -255,6 +234,7 @@ def screenCapture(toFile=True):
     else:
         img = pyautogui.screenshot(region=gameCoord)
         return img
+
 def locateImageOnScreen(img,confidence=None):
     try:
         if confidence is not None:
@@ -266,6 +246,7 @@ def locateImageOnScreen(img,confidence=None):
             return imageLoc
     except:
         traceback.print_exc()
+
 def locateButtons(img,imgHL,confidence1=None,confidence2=None):
     if confidence1 is not None: imgLoc = locateImageOnScreen(img,confidence=confidence1)
     else: imgLoc = locateImageOnScreen(img)
@@ -317,18 +298,23 @@ def getWindowRectByName(windowName):
     return (left,top,w,h),hwnd
 
 def getAbsoluteCoordByOffset(origin,offset):
-    return origin[0]+(offset[0]+offset[2]/2),origin[1]+(offset[1]+offset[3]/2)
+    return origin[0]+offset[0],origin[1]+offset[1]
 
-def matchTemplateCoord(origin,template,method):
-    h,w=template.shape[:2]
-    result=cv2.matchTemplate(origin,template,method)
-    min_val,max_val,min_loc,max_loc = cv2.minMaxLoc(result)
-    if method in [cv.TM_SQDIFF, cv.TM_SQDIFF_NORMED]:
-        top_left = min_loc
-    else:
-        top_left = max_loc
-    bottom_right = (top_left[0] + w, top_left[1] + h)
-    return top_left,bottom_right
+def getOffsetCoordByAbsolute(origin,abs): 
+    return abs[0]-origin[0],abs[1]-origin[1]
+
+def mouseClick(*args): # y=None to provide compability to Tuple
+    clickX = clickY = None
+    if len(args) == 1 and args[0][0]>=0 and args[0][1]>=0 : # Tuple
+        clickX = args[0][0]
+        clickY = args[0][1]
+    elif len(args) == 2 and args[0]>=0 and args[1]>=0 : # x,y
+        clickX = args[0]
+        clickY = args[1]
+    pyautogui.mouseDown(clickX,clickY)
+    time.sleep(MOUSE_CLICK_DELAY)
+    pyautogui.mouseUp()
+    return True
 
 def isForegroundWindow(windowName,windowHwnd=None):
     if windowHwnd == None:
@@ -347,3 +333,6 @@ def isFileOpen(filePath):
         return False
     except:
         return True
+
+def killProcess(processName):
+    os.system('TASKKILL /F /IM '+processName)

@@ -1,6 +1,7 @@
 from os import environ, listdir
 from os.path import join, isfile, getmtime, abspath
 import json
+import time
 import traceback
 from datetime import datetime
 savedGamePath = environ['USERPROFILE'] + "\Saved Games\Frontier Developments\Elite Dangerous"
@@ -14,7 +15,8 @@ journal = {
     'lastTarget': '',
     'remainingJumpsInRoute': 0,
     'target': '',
-    'isUnderAttack': False # Interdiction and Under Attack check
+    'isUnderAttack': False, # Interdiction and Under Attack check
+    'isBeingScanned': False
 }
 # STATUS: normal,undocking,docking,startUndock,startDock,docked,startJump,finishJump
 def getNavRoute(routePath=None):
@@ -64,14 +66,15 @@ def parseLogs(logPath=None):
                         # print(logEvent+' ') 
                         # print(logTime)
 
-                        if (logEvent == 'ReceiveText' and ('CargoHunter' in logJson['Message'] or 'PassengerHunter' in logJson['Message'] or 'AttackDutyStart' in logJson['Message'])) or logEvent == 'Interdicted' or logEvent == 'UnderAttack': # May be interdicted!
+                        if ((logEvent == 'ReceiveText' and ('CargoHunter' in logJson['Message'] or 'PassengerHunter' in logJson['Message'] or 'AttackDutyStart' in logJson['Message'])) or logEvent == 'Interdicted' or logEvent == 'UnderAttack' or (logEvent == 'Music' and (logJson['MusicTrack'] == 'Interdiction' or logJson['MusicTrack'] == 'Combat_Dogfight'))) and time.time()-logTime <= 60: # May be interdicted!
                             journal['isUnderAttack'] = True
-                        
+                        elif logEvent == 'Scanned' and time.time()-logTime <= 60 : # logged within 60 seconds 
+                            journal['isBeingScanned'] = True
+                        elif logEvent == 'Resurrect' or logEvent == 'LoadGame' or logEvent == 'Shutdown': # Ship destroyed / Reload the game
+                            journal['isUnderAttack'] = journal['isBeingScanned'] = False
                         elif logEvent == 'Music': # music playing
-                            if logJson['MusicTrack'] == 'Combat_Dogfight' and journal['isUnderAttack'] is not True: # Under attack!
-                                journal['isUnderAttack'] = True
-                            elif logJson['MusicTrack'] == 'DestinationFromHyperspace' and journal['target'] is not None: # Finish multi-hop route
-                                journal['target']=journal['lastTarget']= None 
+                            if logJson['MusicTrack'] == 'DestinationFromHyperspace' and journal['target'] is not None: # Finish multi-hop route
+                                journal['target'] = journal['lastTarget'] = None 
                             elif logJson['MusicTrack'] == 'MainMenu': journal['status'] = 'MainMenu'
                             elif logJson['MusicTrack'] == 'DockingComputer': 
                                 if journal['status'] == 'startUndock': journal['status'] = 'undocking'
