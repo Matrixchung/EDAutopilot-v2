@@ -235,11 +235,14 @@ def screenCapture(toFile=True):
         img = pyautogui.screenshot(region=gameCoord)
         return img
 
-def locateImageOnScreen(img,confidence=None):
+def locateImageOnScreen(img,confidence=None,region=None):
     try:
         if confidence is not None:
-            imageBox = pyautogui.locateOnScreen(img,confidence=confidence)
-        else:imageBox = pyautogui.locateOnScreen(img)
+            if region is not None: imageBox = pyautogui.locateOnScreen(img,confidence=confidence,region=region)
+            else: imageBox = pyautogui.locateOnScreen(img,confidence=confidence)
+        else:
+            if region is not None: imageBox = pyautogui.locateOnScreen(img,region=region)
+            else: imageBox = pyautogui.locateOnScreen(img)
         if imageBox is None: return (-1,-1)
         else:
             imageLoc = pyautogui.center(imageBox)

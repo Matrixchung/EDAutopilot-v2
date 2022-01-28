@@ -2,7 +2,7 @@
  - An autopilot bot for Elite:Dangerous based on OpenCV+Python.
 # What can it do?
  - Auto align with the displayed navigation circle
- - Run the Robigo Sightseeing mission automatically, you only have to select the missions and claim rewards
+ - Run the Robigo Sightseeing mission unmanned with a full support of FULLY-AUTOMATED process
  - Provide a gameSession API which you can write your own autonomous script
  - You can fork it as you wish to make changes
 # How to use it?
@@ -13,8 +13,8 @@
  2. Make sure you have applied the Useful Settings (Best recommended, because I write this entire project in those settings)
  3. Go to .vscode folder and run the script robigo.py (For Robigo Sightseeing Mission, or you can write your own)
  ``` python ./robigo.py```
- 4. When you got your missions at Robigo Mines, simply click the Home button on your keyboard,and you can just set up a 15-minute timer and then go back to claim the rewards(depends on your internet connection)
- 5. You can terminate the running process anytime when you click the End button.
+ 4. When you are at Robigo Mines, simply click the Home button on your keyboard,and you can just sit back
+ 5. You can terminate the running process anytime when you click the End button. (Sometimes it may not affect when in a sleep loop)
  6. You can leave the process unsupervised, but you should keep the mouse cursor on the Client Screen and manually takeover when it comes to interdict you
 # Useful Settings
  - Optimized Graphics Settings : 
@@ -81,5 +81,7 @@
 		</DesaturateTest>
 	</GUIColour>
  ```
+# Tips
+ - In order not to get interdicted, you should only choose 'Low-value target' mission, which is displayed in the mission details. The other traits can be ignored cause we are in the 'Outpost' and won't be scanned.
 # Credits
  - @skai2 https://github.com/skai2/EDAutopilot for initial idea and DirectInput system

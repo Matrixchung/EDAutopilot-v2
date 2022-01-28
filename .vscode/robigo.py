@@ -37,6 +37,16 @@ button_fuel = str(fileRootPath.joinpath('templates/button_fuel.png'))
 button_complete_mission = str(fileRootPath.joinpath('templates/button_complete_mission.png'))
 button_complete_missionHL = str(fileRootPath.joinpath('templates/button_complete_mission_highlight.png'))
 button_starport_service = str(fileRootPath.joinpath('templates/button_starport_services.png'))
+sign_passenger_lounge = str(fileRootPath.joinpath('templates/sign_passenger_lounge.png'))
+
+mission_dest = str(fileRootPath.joinpath('templates/robigo/mission_dest.png'))
+mission_destHL = str(fileRootPath.joinpath('templates/robigo/mission_dest_highlight.png'))
+mission_low_value_target = str(fileRootPath.joinpath('templates/robigo/mission_low_value_target.png'))
+mission_high_value_target = str(fileRootPath.joinpath('templates/robigo/mission_high_value_target.png'))
+button_back_smallHL = str(fileRootPath.joinpath('templates/button_back_small_highlight.png'))
+button_accept_unavail = str(fileRootPath.joinpath('templates/robigo/button_accept_unavailable.png'))
+button_accept_unavailHL = str(fileRootPath.joinpath('templates/robigo/button_accept_unavailable_highlight.png'))
+button_accept = str(fileRootPath.joinpath('templates/robigo/button_accept.png'))
 
 # Offset coord as follows (for mouse clicking)
 # using GetAbsoluteByOffset()
@@ -47,7 +57,10 @@ offset_button_provider_1 = (293,287) # first mission provider in passenger loung
 offset_button_provider_2 = (293,404) # second
 offset_button_provider_3 = (293,520) # third
 offset_button_mission_back = (281,872) # back button in mission board/passenger lounge
-offset_button_reward_back = (649,872) # back button in rewarding screen
+offset_button_stationservice_exit = (326,808)
+offset_button_reward_back = (649,872) # back button in rewarding screen/mission detail board
+offset_button_pick_cabin = (893,872)
+offset_pick_cabin_bottom = (1044,796)
 
 def setDest(session,dest):
     if session.guiFocus != 'GalaxyMap': 
@@ -59,9 +72,6 @@ def setDest(session,dest):
         return False
     mouseClick(bookmarkLoc)
     session.sleep(2)
-    mouseClick(bookmarkLoc)
-    session.sleep(2)
-    pyautogui.move(50,0)
     if dest == 'Sothis': destLoc = locateButtons(map_sothis,map_sothisHL,confidence1=0.8,confidence2=0.8)
     elif dest == 'Robigo': destLoc = locateButtons(map_robigo,map_robigoHL,confidence1=0.7,confidence2=0.7)
     else : return False
@@ -82,9 +92,13 @@ progress = p()
 if __name__ == '__main__': # Test
     isDebug = True
     stateOverride = '' # Debugging Options (default: none)
+    
+    ## USER_DEFINITIONS_AREA
     # !!! The middle destinations depend on your ship's jumping capability, so change this if necessary !!!
     firstJumpDest = 'Wredguia TH-U c16-18' # From Robigo to Sothis (3-jump middle star)
     thirdJumpDest = 'Wredguia TH-U c16-18' # From Sothis to Robigo (3-jump middle star)
+    maxMissionCount = 8
+    ## USER_DEFINITIONS_AREA
 
     states = ['initial','get-mission','mission-received','select-target-sothis','undock','thrust-up','first-align','first-jump', # in Robigo
     'first-sc','second-align','second-jump', # in first-jump middle star
@@ -119,7 +133,7 @@ if __name__ == '__main__': # Test
                     current = pyautogui.position()
                     window = session.windowCoord
                     print(getOffsetCoordByAbsolute(window,current))
-                    # mouseClick(getAbsoluteCoordByOffset(window,offset_button_provider_1))
+                    session.sleep(0.1)
             inEmergency = session.shipEmergency # Emergency
             missionCount = len(session.missionList)
             # 功能区
@@ -137,38 +151,108 @@ if __name__ == '__main__': # Test
                     continue
                 if failsafeState != '':machine.set_state(failsafeState)
                 if session.status == 'Docked' and progress.state == 'initial': # in while loop
-                    if len(session.missionList) == 0 : # 'get-mission'
-                        # machine.set_state('get-mission')
-                        pass
-                        if isDebug: machine.set_state('mission-received') # allow launch without missions (Debug)
+                    if len(session.missionList) < maxMissionCount : # 'get-mission'
+                        machine.set_state('get-mission')
+                        # pass
+                        # if isDebug: machine.set_state('mission-received') # allow launch without missions (Debug)
                     else :
                         machine.set_state('mission-received')
                 
                 elif progress.state == 'get-mission':
-                    pass # WIP
-
+                    lounge = locateImageOnScreen(sign_passenger_lounge,confidence=0.6)[0]!=-1
+                    windowCoord = session.windowCoord
+                    if lounge:
+                        for i in range(3): # 3 mission providers
+                            if i == 0 : # check first provider
+                                mouseClick(getAbsoluteCoordByOffset(windowCoord,offset_button_provider_1))
+                            if i == 1 : # check second
+                                mouseClick(getAbsoluteCoordByOffset(windowCoord,offset_button_provider_2))
+                            if i == 2 : # check third
+                                mouseClick(getAbsoluteCoordByOffset(windowCoord,offset_button_provider_3))
+                            session.sleep(5)
+                            for j in range(6): # failsafe number 6
+                                session.sleep(1)
+                                result = locateImageOnScreen(mission_dest,confidence=0.6)
+                                result1 = locateImageOnScreen(mission_destHL,confidence=0.6)
+                                if result[0]==-1 and result1[0]==-1: break # No more mission
+                                if result1[0]!=-1: pyautogui.moveTo(result1[0]-200,result1[1])
+                                else: pyautogui.moveTo(result[0]-200,result[1])
+                                session.sleep(1)
+                                result1 = locateImageOnScreen(mission_destHL,confidence=0.6)
+                                if result1[0]==-1 : continue
+                                mouseClick(result1)
+                                session.sleep(2) # entering mission detail board
+                                lowValue = locateImageOnScreen(mission_low_value_target,confidence=0.6)[0]!=-1
+                                highValue = locateImageOnScreen(mission_high_value_target,confidence=0.6)[0]!=-1
+                                if lowValue and not highValue : # low value target
+                                    if isDebug: print("get-mission: Low-value target detected")
+                                    session.sleep(1)
+                                    mouseClick(getAbsoluteCoordByOffset(windowCoord,offset_button_pick_cabin))
+                                    session.sleep(1)
+                                    pyautogui.moveTo(getAbsoluteCoordByOffset(windowCoord,offset_pick_cabin_bottom))
+                                    session.sleep(1)
+                                    for t in range(8): # do 8 times of scrolling down 100 "ticks" to go to cabin bottom (fewest slots)
+                                        pyautogui.scroll(-100)
+                                        session.sleep(0.5)
+                                    # now we`re at the bottom, start enumerating
+                                    for t in range(maxMissionCount):
+                                        backButton = locateImageOnScreen(button_back_smallHL,confidence=0.6)[0]!=-1
+                                        acceptButton = locateImageOnScreen(button_accept,confidence=0.7)[0]!=-1
+                                        acceptButton_unavail = locateImageOnScreen(button_accept_unavail,confidence=0.8)[0]!=-1
+                                        acceptButton_unavailHL = locateImageOnScreen(button_accept_unavailHL,confidence=0.7)[0]!=-1
+                                        if backButton == False and (acceptButton or acceptButton_unavail or acceptButton_unavailHL): # ensure we're not targetting the back button and still in the picking board
+                                            if t == 0: # first enumerate
+                                                session.sendKey('space')
+                                                session.sendDelay(1)
+                                            else:
+                                                session.sendKey('UI_Up')
+                                                session.sendDelay(1)
+                                                session.sendKey('space')
+                                                session.sendDelay(1)
+                                        else:
+                                            break
+                                else: # high-value
+                                    if isDebug: print("get-mission: High-value target detected")
+                                    mouseClick(getAbsoluteCoordByOffset(windowCoord,offset_button_reward_back))
+                                session.sleep(2)
+                                session.update()
+                                missionCount = len(session.missionList)
+                                if missionCount >= maxMissionCount : break # No more slot
+                            if missionCount >= maxMissionCount : break # break the outer loop
+                        session.update()
+                        missionCount = len(session.missionList)
+                        if missionCount >= maxMissionCount or missionCount != 0 : # got
+                            machine.set_state('mission-received')
+                            print("success")
+                            pass
                 elif progress.state == 'mission-received': # elif 确保一次大的while循环中只执行一次状态判断，避免状态转移导致的update滞后
-                    # !!! shipTarget are based on your ship's jumping capability, so change it if necessary !!!
-                    if session.shipTarget != firstJumpDest: # select-target-sothis 
-                        session.sleep(1)
-                        setDest(session,'Sothis')
-                    session.sleep(2)
-                    if session.shipTarget == firstJumpDest:
+                    if missionCount == 0 : machine.set_state('get-mission')
+                    else:
+                        if session.shipTarget != firstJumpDest: # select-target-sothis 
+                            session.sleep(1)
+                            setDest(session,'Sothis')
                         session.sleep(2)
-                        machine.set_state('undock')
+                        if session.shipTarget == firstJumpDest:
+                            session.sleep(2)
+                            machine.set_state('undock')
                 
                 elif progress.state == 'undock':
                     if session.status == 'Docked':
+                        windowCoord = session.windowCoord
                         session.sleep(1)
                         if session.guiFocus != 'NoFocus': # 返回到主界面
-                            session.sendKey('esc')
-                        session.sleep(2)
-                        session.sendKey('UI_Down',repeat=3) # choose AUTO LAUNCH
-                        session.sleep(1)
-                        session.sendKey('space') 
-                        session.sendKey('SpeedZero')
-                        session.sleep(1)
-                    machine.set_state('thrust-up')
+                            mouseClick(getAbsoluteCoordByOffset(windowCoord,offset_button_mission_back))
+                            session.sleep(2)
+                            mouseClick(getAbsoluteCoordByOffset(windowCoord,offset_button_stationservice_exit))
+                            session.sleep(2)
+                        if session.guiFocus == 'NoFocus':
+                            session.sleep(2)
+                            session.sendKey('UI_Down',repeat=3) # choose AUTO LAUNCH
+                            session.sleep(1)
+                            session.sendKey('space') 
+                            session.sendKey('SpeedZero')
+                            session.sleep(1)
+                            machine.set_state('thrust-up')
 
                 elif progress.state=='thrust-up':
                     session.sendKey('ThrustUp')
@@ -296,13 +380,16 @@ if __name__ == '__main__': # Test
                         machine.set_state('first-waiting-for-arrive')
 
                 elif progress.state=='first-waiting-for-arrive':
-                    if 'Supercruise' in session.stateList and locateImageOnScreen(sign_obscured,confidence=0.8)[0]!=-1: # target obscured
-                        print('first-waiting-for-arrive:Destination Target Obscured!') # 目标被遮挡
-                        session.sunAvoiding(turnDelay=9,fwdDelay=30)
-                        machine.set_state('first-auxiliary-align')
-                    result2 = locateImageOnScreen(sign_align_with_target,confidence=0.7)
-                    if result2[0]!=-1 and 'Supercruise' in session.stateList :
-                        session.align()
+                    if 'Supercruise' in session.stateList:
+                        if locateImageOnScreen(sign_obscured,confidence=0.8)[0]!=-1: # target obscured
+                            print('first-waiting-for-arrive:Destination Target Obscured!') # 目标被遮挡
+                            session.sunAvoiding(turnDelay=9,fwdDelay=30)
+                            machine.set_state('first-auxiliary-align')
+                        else: session.align()
+                    # else:
+                        # result2 = locateImageOnScreen(sign_align_with_target,confidence=0.55)
+                        # if result2[0]!=-1 and 'Supercruise' in session.stateList :
+                            # session.align()
                     if not ('Supercruise' in session.stateList) and session.status == 'normal': # add more condition
                         session.sendDelay(1,block=True)
                         session.sendKey('SpeedZero')
@@ -315,7 +402,7 @@ if __name__ == '__main__': # Test
 
                 elif progress.state == 'waiting-for-beacon':
                     if 'FSDCooldown' not in session.stateList: # About the same time
-                        session.sendDelay(2,block=True)
+                        session.sendDelay(5,block=True)
                         machine.set_state('select-target-robigo')
 
                 elif progress.state=='select-target-robigo':
@@ -437,10 +524,16 @@ if __name__ == '__main__': # Test
                         machine.set_state('second-waiting-for-arrive')
                 
                 elif progress.state=='second-waiting-for-arrive':
-                    if 'Supercruise' in session.stateList and locateImageOnScreen(sign_obscured,confidence=0.8)[0]!=-1: # target obscured
-                        print('second-waiting-for-arrive:Destination Target Obscured!') # 目标被遮挡
-                        session.sunAvoiding(turnDelay=9,fwdDelay=30)
-                        machine.set_state('second-auxiliary-align')
+                    if 'Supercruise' in session.stateList :
+                        if locateImageOnScreen(sign_obscured,confidence=0.8)[0]!=-1: # target obscured
+                            print('second-waiting-for-arrive:Destination Target Obscured!') # 目标被遮挡
+                            session.sunAvoiding(turnDelay=9,fwdDelay=30)
+                            machine.set_state('second-auxiliary-align')
+                        else: session.align()
+                    # else:
+                        # result2 = locateImageOnScreen(sign_align_with_target,confidence=0.55)
+                        # if result2[0]!=-1 and 'Supercruise' in session.stateList :
+                            # session.align()
                     if not ('Supercruise' in session.stateList) and session.status == 'normal': # add more condition
                         session.sendDelay(1,block=True)
                         session.sendKey('SpeedZero')
@@ -517,7 +610,7 @@ if __name__ == '__main__': # Test
                 elif progress.state=='claim-task-reward': # Auto claim task rewards
                     windowCoord = session.windowCoord
                     session.sleep(10) # depends on internet connection
-                    if session.guiFocus != 'StationServices': machine.set_state('goto-passenger')
+                    if session.guiFocus != 'StationServices' or locateImageOnScreen(sign_passenger_lounge,confidence=0.6)[0]==-1: machine.set_state('goto-passenger')
                     else:
                         for i in range(3): # 3 mission providers
                             if i == 0 : # check first provider
@@ -531,7 +624,7 @@ if __name__ == '__main__': # Test
                                 session.sleep(1)
                                 result = locateImageOnScreen(button_complete_mission,confidence=0.6)
                                 if result[0]==-1: break # No more mission
-                                pyautogui.moveTo(result)
+                                pyautogui.moveTo(result[0]-200,result[1]) # prevent mouse cursor
                                 session.sleep(1)
                                 result1 = locateImageOnScreen(button_complete_missionHL,confidence=0.6)
                                 if result1[0]==-1 : continue
@@ -546,8 +639,8 @@ if __name__ == '__main__': # Test
                         session.update()
                         missionCount = len(session.missionList)
                         if missionCount == 0: # all claimed
-                            auto=False
-                            failsafeState = ''
+                            # auto=False
+                            # failsafeState = ''
                             machine.set_state('initial')
 
             if align: align = session.align()
