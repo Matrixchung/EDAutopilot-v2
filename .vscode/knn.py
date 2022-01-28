@@ -73,6 +73,6 @@ def knnMatcher(originImg,template,debug=False):
                        'singlePointColor':(255, 0, 0),
                        'matchesMask':matchesMask,
                        'flags':0}
-        img3 = cv2.drawMatchesKnn(img1, kp1, img2, kp2, matches, None, **draw_params)
+        img3 = cv2.drawMatchesKnn(originImg, kp1, template, kp2, matches, None, **draw_params)
         return matchPercent,img3
     return matchPercent
