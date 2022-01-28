@@ -3,9 +3,9 @@
 1.FLANN代表近似最近邻居的快速库。它代表一组经过优化的算法，用于大数据集中的快速最近邻搜索以及高维特征。
 2.对于大型数据集，它的工作速度比BFMatcher快。
 3.需要传递两个字典来指定要使用的算法及其相关参数等
-对于SIFT或SURF等算法，可以用以下方法：
+对于SIFT或SURF等算法，可以用以下方法:
 index_params = dict(algorithm = FLANN_INDEX_KDTREE, trees = 5)
-对于ORB，可以使用以下参数：
+对于ORB，可以使用以下参数:
 index_params= dict(algorithm = FLANN_INDEX_LSH,
                    table_number = 6, # 12   这个参数是searchParam,指定了索引中的树应该递归遍历的次数。值越高精度越高
                    key_size = 12,     # 20
