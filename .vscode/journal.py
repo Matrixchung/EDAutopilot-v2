@@ -66,9 +66,9 @@ def parseLogs(logPath=None):
                         # print(logEvent+' ') 
                         # print(logTime)
 
-                        if ((logEvent == 'ReceiveText' and ('CargoHunter' in logJson['Message'] or 'PassengerHunter' in logJson['Message'] or 'AttackDutyStart' in logJson['Message'])) or logEvent == 'Interdicted' or logEvent == 'UnderAttack' or (logEvent == 'Music' and (logJson['MusicTrack'] == 'Interdiction' or logJson['MusicTrack'] == 'Combat_Dogfight'))) and time.time()-logTime <= 60: # May be interdicted!
+                        if ((logEvent == 'ReceiveText' and ('CargoHunter' in logJson['Message'] or 'PassengerHunter' in logJson['Message'] or 'AttackDutyStart' in logJson['Message'])) or logEvent == 'Interdicted' or logEvent == 'UnderAttack' or (logEvent == 'Music' and (logJson['MusicTrack'] == 'Interdiction' or logJson['MusicTrack'] == 'Combat_Dogfight'))) and time.time()-logTime <= 30: # May be interdicted!
                             journal['isUnderAttack'] = True
-                        elif logEvent == 'Scanned' and time.time()-logTime <= 60 : # logged within 60 seconds 
+                        elif logEvent == 'Scanned' and time.time()-logTime <= 30 : # logged within 30 seconds 
                             journal['isBeingScanned'] = True
                         elif logEvent == 'Resurrect' or logEvent == 'LoadGame' or logEvent == 'Shutdown': # Ship destroyed / Reload the game
                             journal['isUnderAttack'] = journal['isBeingScanned'] = False
@@ -125,7 +125,6 @@ def parseLogs(logPath=None):
 def setJournal():
     parseLogs()
     return journal
-    # return journal
 
 if __name__ == '__main__': # Test
     parseLogs()

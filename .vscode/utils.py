@@ -24,6 +24,7 @@ MOUSE_CLICK_DELAY = 0.200
 DELAY_BETWEEN_KEYS = 1.5
 ALIGN_DEAD_ZONE = 1.4
 SLEEP_UPDATE_DELAY = 0.1
+WATCHDOG_SCANNING_DELAY = 1.0 # Time for watchdog scanning if we're in emergency situation
 
 globalWindowName = "Elite - Dangerous (CLIENT)"
 fileRootPath = pathlib.Path.cwd()
@@ -160,6 +161,16 @@ def eventsHandler(q):
             sendHexKey(params[1],params[2],params[3],params[4],params[5])
         elif params[0] == 'DELAY':
             time.sleep(params[1])
+
+# Watchdog 
+def watchdog(terminate,debug): # terminate: allow watchdog to force terminate the entire game process if in emergency
+    while True:
+        journal = setJournal()
+        isEmergency = journal['isUnderAttack'] or journal['isBeingScanned']
+        if isEmergency and terminate: # Force terminating...
+            if debug : print("Watchdog: killing process")
+            killProcess('EliteDangerous64.exe')
+        time.sleep(WATCHDOG_SCANNING_DELAY)
 
 # Window Utils
 # def getNavPointsByCompass(compassImg,compassShowImg,compassHsv):

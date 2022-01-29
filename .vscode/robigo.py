@@ -89,16 +89,17 @@ def setDest(session,dest):
 class p(object):
     pass
 progress = p()
-if __name__ == '__main__': # Test
+if __name__ == '__main__': 
+    ## USER_DEFINITIONS_AREA_BEGINS
     isDebug = True
+    usingWatchDog = True # watchdog can help you force CLOG when being interdicted or attacked
     stateOverride = '' # Debugging Options (default: none)
     
-    ## USER_DEFINITIONS_AREA
     # !!! The middle destinations depend on your ship's jumping capability, so change this if necessary !!!
     firstJumpDest = 'Wredguia TH-U c16-18' # From Robigo to Sothis (3-jump middle star)
     thirdJumpDest = 'Wredguia TH-U c16-18' # From Sothis to Robigo (3-jump middle star)
     maxMissionCount = 8
-    ## USER_DEFINITIONS_AREA
+    ## USER_DEFINITIONS_AREA_ENDS
 
     states = ['initial','get-mission','mission-received','select-target-sothis','undock','thrust-up','first-align','first-jump', # in Robigo
     'first-sc','second-align','second-jump', # in first-jump middle star
@@ -110,7 +111,7 @@ if __name__ == '__main__': # Test
     initialState = 'initial' # do not change! (default: initial)
     if stateOverride != '':initialState=stateOverride
     machine = transitions.Machine(model=progress,states=states,initial=initialState)
-    session = gameSession(debug=isDebug)
+    session = gameSession(debug=isDebug,watchDog=usingWatchDog)
     align = False
     auto = False
     startTime = datetime.now()
@@ -140,14 +141,9 @@ if __name__ == '__main__': # Test
             if auto:
                 if progress.state!='initial':
                     elapsedTime = datetime.now()-startTime
-                if keyboard.is_pressed('f10'): # Emergency Break
+                if keyboard.is_pressed('f10') or inEmergency: # Emergency Break
                     auto=False
                     failsafeState = progress.state
-                    continue
-                if inEmergency : # in emergency situation - Force CLOG
-                    auto=False
-                    failsafeState = progress.state
-                    killProcess('EliteDangerous64.exe') # CLOG (forgive me)
                     continue
                 if failsafeState != '':machine.set_state(failsafeState)
                 if session.status == 'Docked' and progress.state == 'initial': # in while loop
@@ -172,13 +168,13 @@ if __name__ == '__main__': # Test
                             session.sleep(5)
                             for j in range(6): # failsafe number 6
                                 session.sleep(1)
-                                result = locateImageOnScreen(mission_dest,confidence=0.6)
-                                result1 = locateImageOnScreen(mission_destHL,confidence=0.6)
+                                result = locateImageOnScreen(mission_dest,confidence=0.7)
+                                result1 = locateImageOnScreen(mission_destHL,confidence=0.7)
                                 if result[0]==-1 and result1[0]==-1: break # No more mission
                                 if result1[0]!=-1: pyautogui.moveTo(result1[0]-200,result1[1])
                                 else: pyautogui.moveTo(result[0]-200,result[1])
                                 session.sleep(1)
-                                result1 = locateImageOnScreen(mission_destHL,confidence=0.6)
+                                result1 = locateImageOnScreen(mission_destHL,confidence=0.7)
                                 if result1[0]==-1 : continue
                                 mouseClick(result1)
                                 session.sleep(2) # entering mission detail board
@@ -500,10 +496,10 @@ if __name__ == '__main__': # Test
                         for i in range(10): # maximum 10 targets in a single tab
                             # 因为使得POI最近的距离实在不好控制 所以遍历导航页的项目 选取 Robigo Mines
                             res1 = locateImageOnScreen(tab_robigomines,confidence=0.6)
-                            res2 = locateImageOnScreen(tab_robigominesHL,confidence=0.65)
+                            res2 = locateImageOnScreen(tab_robigominesHL,confidence=0.7)
                             if res2[0]!=-1: # Match Found
                                 break
-                            if res2[0]==-1 or res1[0]!=-1:
+                            if res2[0]==-1 and res1[0]!=-1: 
                                 session.sendKey('UI_Down')
                                 session.sendDelay(2.5,block=True)
                         session.sendKey('space')

@@ -4,7 +4,6 @@ from os.path import join, isfile, getmtime, abspath
 from ctypes import windll
 import win32file
 import json
-import traceback
 savedGamePath = environ['USERPROFILE'] + "\Saved Games\Frontier Developments\Elite Dangerous"
 status = {
     'Docked': False,
@@ -117,7 +116,7 @@ def getFlagsAndFocusByJSON(statusPath=None):
 
 def getStatusByFlags(rawFlags):
     for statusName in flags.keys():
-        status[statusName] = rawFlags&flags[statusName] != 0
+        status[statusName] = rawFlags & flags[statusName] != 0
 
 def showAllTrueStatus():
     rawFlags = getFlagsAndFocusByJSON()

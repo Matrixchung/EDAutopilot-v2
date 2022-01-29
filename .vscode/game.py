@@ -14,8 +14,8 @@ class gameSession:
     imageProcessTime = 1.0
     windowCoord = (0,0) # Left and Top coord
 
-    def __init__(self,gameName=globalWindowName,name=None,debug=False):
-        if name is None: self.name='Session 1'
+    def __init__(self,gameName=globalWindowName,name=None,debug=False,watchDog=False):
+        if name is None: self.name='Session_1'
         else: self.name = name
         self.shmName = 'shm_'+self.name
         self.isDebug = debug
@@ -29,7 +29,7 @@ class gameSession:
         except:
             traceback.print_exc() # TODO: Implement it with LOGGER API
         if self.isDebug:
-            print('SharedMemory Block Created:',self.shmCoord.name)
+            if self.shmCoord is not None: print('SharedMemory Block Created: ',self.shmCoord.name)
         try:
             self.eventQueue = Queue(maxsize=1)
             self.eventProcess = Process(target=eventsHandler,args=(self.eventQueue,))
@@ -38,6 +38,11 @@ class gameSession:
             self.imageProcess.daemon = True
             self.imageProcess.start()
             self.eventProcess.start()
+            if watchDog:
+                print("Watchdog for "+self.name+" is enabled")
+                self.watchDogProcess = Process(target=watchdog,args=(watchDog,debug,))
+                self.watchDogProcess.daemon = True
+                self.watchDogProcess.start()
         except:
             traceback.print_exc()
         if self.isDebug:
