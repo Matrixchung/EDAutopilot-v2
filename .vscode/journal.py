@@ -3,7 +3,7 @@ from os.path import join, isfile, getmtime, abspath
 import json
 import time
 import traceback
-from datetime import datetime
+from datetime import datetime,timezone
 savedGamePath = environ['USERPROFILE'] + "\Saved Games\Frontier Developments\Elite Dangerous"
 journal = {
     'latestLogUpdateTime': 0.0,
@@ -58,7 +58,7 @@ def parseLogs(logPath=None):
                 # Event Filters end
                 linesRead += 1
                 if linesRead>latestLogLine:
-                    logTime = datetime.strptime(logJson['timestamp'],UTC_FORMAT)
+                    logTime = datetime.strptime(logJson['timestamp'],UTC_FORMAT).replace(tzinfo=timezone.utc) # change to UTC time
                     logTime = logTime.timestamp()
                     if logTime>=journal['latestLogUpdateTime']: # should update
                         latestLogLine += 1
@@ -128,8 +128,11 @@ def setJournal():
 
 if __name__ == '__main__': # Test
     parseLogs()
+    print(getLatestLogPath())
     print(journal['status'])
     print(journal['location'])
     print(journal['dockedStation'])
     print(journal['target'])
     print(journal['missions'])
+    print(journal['isUnderAttack'])
+    print(journal['isBeingScanned'])
