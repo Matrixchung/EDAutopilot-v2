@@ -1,6 +1,7 @@
 from multiprocessing import Process,Queue,shared_memory
 import pyautogui
 import keyboard
+import psutil
 import os
 import win32gui
 import win32file
@@ -22,11 +23,12 @@ KEY_DEFAULT_DELAY = 0.120
 KEY_REPEAT_DELAY = 0.200
 MOUSE_CLICK_DELAY = 0.200
 DELAY_BETWEEN_KEYS = 1.5
-ALIGN_DEAD_ZONE = 1.4
+ALIGN_DEAD_ZONE = 1.2
 SLEEP_UPDATE_DELAY = 0.1
 WATCHDOG_SCANNING_DELAY = 1.0 # Time for watchdog scanning if we're in emergency situation
 
 globalWindowName = "Elite - Dangerous (CLIENT)"
+globalProcessName = "EliteDangerous64.exe"
 fileRootPath = pathlib.Path.cwd()
 
 params = cv2.SimpleBlobDetector_Params()
@@ -167,9 +169,9 @@ def watchdog(terminate,debug): # terminate: allow watchdog to force terminate th
     while True:
         journal = setJournal()
         isEmergency = journal['isUnderAttack'] or journal['isBeingScanned']
-        if isEmergency and terminate: # Force terminating...
+        if isEmergency and terminate and isProcessExist(globalProcessName): # Force terminating...
             if debug : print("Watchdog: killing process")
-            killProcess('EliteDangerous64.exe')
+            killProcess(globalProcessName)
         time.sleep(WATCHDOG_SCANNING_DELAY)
 
 # Window Utils
@@ -350,3 +352,9 @@ def isFileOpen(filePath):
 
 def killProcess(processName):
     os.system('TASKKILL /F /IM '+processName)
+
+def isProcessExist(processName):
+    pids = psutil.pids()
+    for pid in pids:
+        if psutil.Process(pid).name() == processName: return True
+    return False

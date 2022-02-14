@@ -350,12 +350,12 @@ if __name__ == '__main__':
                         session.sendDelay(1,block=True)
                         for i in range(20): 
                             # 因为使得POI最近的距离实在不好控制 所以遍历导航页的项目 选取 Sirius Atmospherics 
-                            res1 = locateImageOnScreen(tab_sirius,confidence=0.6)
+                            res1 = locateImageOnScreen(tab_sirius,confidence=0.65)
                             res2 = locateImageOnScreen(tab_siriusHL,confidence=0.6)
                             res3 = locateImageOnScreen(tab_siriusMarked,confidence=0.6)
                             if res2[0]!=-1 or res3[0]!=-1 : # Match Found
                                 break
-                            if (res2[0]==-1 or res3[0]==-1) or res1[0]!=-1:
+                            if (res2[0]==-1 or res3[0]==-1) and res1[0]!=-1:
                                 session.sendKey('UI_Down')
                                 session.sendDelay(2.5,block=True)
                         session.sendKey('space')
@@ -364,7 +364,7 @@ if __name__ == '__main__':
                         session.sendKey('space')
                         session.sendDelay(1,block=True)
                         session.sendKey('esc') # back to main panel
-                        session.sendDelay(3,block=True)
+                        session.sendDelay(5,block=True)
                         result1 = locateImageOnScreen(sign_scassist,confidence=0.6) # re-check assist status
                         result2 = locateImageOnScreen(sign_align_with_target,confidence=0.6)
                         if result2[0]!=-1 or result1[0]!=-1: # Supercruise Assist active

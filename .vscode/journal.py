@@ -66,7 +66,7 @@ def parseLogs(logPath=None):
                         # print(logEvent+' ') 
                         # print(logTime)
 
-                        if ((logEvent == 'ReceiveText' and ('CargoHunter' in logJson['Message'] or 'PassengerHunter' in logJson['Message'] or 'AttackDutyStart' in logJson['Message'])) or logEvent == 'Interdicted' or logEvent == 'UnderAttack' or (logEvent == 'Music' and (logJson['MusicTrack'] == 'Interdiction' or logJson['MusicTrack'] == 'Combat_Dogfight'))) and time.time()-logTime <= 30: # May be interdicted!
+                        if ((logEvent == 'ReceiveText' and 'AttackDutyStart' in logJson['Message']) or logEvent == 'Interdicted' or logEvent == 'UnderAttack' or (logEvent == 'Music' and (logJson['MusicTrack'] == 'Interdiction' or logJson['MusicTrack'] == 'Combat_Dogfight'))) and time.time()-logTime <= 30: # May be interdicted!
                             journal['isUnderAttack'] = True
                         elif logEvent == 'Scanned' and time.time()-logTime <= 30 : # logged within 30 seconds 
                             journal['isBeingScanned'] = True
