@@ -12,11 +12,12 @@
  git clone https://github.com/Matrixchung/EDAutopilot.git
  ```
  2. Make sure you have applied the [Useful Settings](https://github.com/Matrixchung/EDAutopilot#useful-settings) (Best recommended, because I write this entire project in those settings)
- 3. Go to .vscode folder and run the script robigo.py (For Robigo Sightseeing Mission, or you can write your own)
+ 3. Run ```pip install -r .\requirements.txt``` to install all dependencies
+ 4. Go to .vscode folder and run the script robigo.py (For Robigo Sightseeing Mission, or you can write your own)
  ``` python ./robigo.py```
- 4. When you are at Robigo Mines, **enter the starport menu and go to Passenger Lounge**, then simply click the Home button, and you can just sit back
- 5. You can terminate the running process anytime when you click the End button. (Sometimes it may not affect when in a sleep loop)
- 6. You can leave the process unsupervised, but you should keep the mouse cursor on the Client Screen and manually takeover when it comes to interdict you
+ 5. When you are at Robigo Mines, **enter the starport menu and go to Passenger Lounge**, then simply click the Home button, and you can just sit back
+ 6. You can terminate the running process anytime when you click the End button. (Sometimes it may not affect when in a sleep loop)
+ 7. You can leave the process unsupervised, but you should keep the mouse cursor on the Client Screen and manually takeover when it comes to interdict you
 
 # Tips
  - In order not to get interdicted, you should only choose 'Low-value target' mission, which is displayed in the mission details. The other traits can be ignored cause we are in the 'Outpost' and won't be scanned.
