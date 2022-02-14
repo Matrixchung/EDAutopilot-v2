@@ -1,5 +1,6 @@
 # EDAutopilot 
  - An autopilot bot for Elite:Dangerous based on OpenCV+Python.
+ - Notice: this program **only** works in *Elite Dangerous: Horizons* currently
 # What can it do?
  - Auto align with the displayed navigation circle
  - Run the Robigo Sightseeing mission unmanned with a full support of FULLY-AUTOMATED process
@@ -13,7 +14,7 @@
  2. Make sure you have applied the Useful Settings (Best recommended, because I write this entire project in those settings)
  3. Go to .vscode folder and run the script robigo.py (For Robigo Sightseeing Mission, or you can write your own)
  ``` python ./robigo.py```
- 4. When you are at Robigo Mines, simply click the Home button on your keyboard,and you can just sit back
+ 4. When you are at Robigo Mines, **enter the starport menu and go to Passenger Lounge**, then simply click the Home button, and you can just sit back
  5. You can terminate the running process anytime when you click the End button. (Sometimes it may not affect when in a sleep loop)
  6. You can leave the process unsupervised, but you should keep the mouse cursor on the Client Screen and manually takeover when it comes to interdict you
 # Useful Settings
