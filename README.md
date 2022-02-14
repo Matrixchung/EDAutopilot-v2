@@ -11,12 +11,17 @@
  ```
  git clone https://github.com/Matrixchung/EDAutopilot.git
  ```
- 2. Make sure you have applied the Useful Settings (Best recommended, because I write this entire project in those settings)
+ 2. Make sure you have applied the [Useful Settings](https://github.com/Matrixchung/EDAutopilot#useful-settings) (Best recommended, because I write this entire project in those settings)
  3. Go to .vscode folder and run the script robigo.py (For Robigo Sightseeing Mission, or you can write your own)
  ``` python ./robigo.py```
  4. When you are at Robigo Mines, **enter the starport menu and go to Passenger Lounge**, then simply click the Home button, and you can just sit back
  5. You can terminate the running process anytime when you click the End button. (Sometimes it may not affect when in a sleep loop)
  6. You can leave the process unsupervised, but you should keep the mouse cursor on the Client Screen and manually takeover when it comes to interdict you
+
+# Tips
+ - In order not to get interdicted, you should only choose 'Low-value target' mission, which is displayed in the mission details. The other traits can be ignored cause we are in the 'Outpost' and won't be scanned.
+ - Currently I'm annoyed at money-grabbing stuffs (for my Fleet Carrier), so currently this project will only play its role as a simple sightseeing mission bot. Given that I have already created a gameSession API, we can expect more features like multi-hop jumping assist for long distance travel etc. in the future. And if you want, you can fork it to do any modifications you want.
+
 # Useful Settings
  - Optimized Graphics Settings : 
      1. 1600x900 Windowed and in Primary Screen (at least mid quality or some functions may be corrupted)
@@ -82,7 +87,6 @@
 		</DesaturateTest>
 	</GUIColour>
  ```
-# Tips
- - In order not to get interdicted, you should only choose 'Low-value target' mission, which is displayed in the mission details. The other traits can be ignored cause we are in the 'Outpost' and won't be scanned.
+
 # Credits
  - @skai2 https://github.com/skai2/EDAutopilot for initial idea and DirectInput system
