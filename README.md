@@ -26,7 +26,8 @@
 
 # Variables
 - [robigo.py](https://github.com/Matrixchung/EDAutopilot/blob/master/.vscode/robigo.py)
-    <table border="1">
+
+    <table>
         <tr>
             <th>Variable</th>
             <th>Description</th>
