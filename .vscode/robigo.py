@@ -94,11 +94,12 @@ if __name__ == '__main__':
     isDebug = True
     usingWatchDog = True # watchdog can help you force CLOG when being interdicted or attacked
     stateOverride = '' # Debugging Options (default: none)
-    
+
     # !!! The middle destinations depend on your ship's jumping capability, so change this if necessary !!!
     firstJumpDest = 'Wredguia TH-U c16-18' # From Robigo to Sothis (3-jump middle star)
     thirdJumpDest = 'Wredguia TH-U c16-18' # From Sothis to Robigo (3-jump middle star)
     maxMissionCount = 8
+    missionCountOverride = 0 # For any unread missions or the mission count not shown properly
     ## USER_DEFINITIONS_AREA_ENDS
 
     states = ['initial','get-mission','mission-received','select-target-sothis','undock','thrust-up','first-align','first-jump', # in Robigo
@@ -136,7 +137,8 @@ if __name__ == '__main__':
                     print(getOffsetCoordByAbsolute(window,current))
                     session.sleep(0.1)
             inEmergency = session.shipEmergency # Emergency
-            missionCount = len(session.missionList)
+            if missionCountOverride != 0: missionCount = missionCountOverride
+            else: missionCount = len(session.missionList)
             # 功能区
             if auto:
                 if progress.state!='initial':
