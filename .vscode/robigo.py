@@ -94,7 +94,7 @@ if __name__ == '__main__':
     isDebug = True
     usingWatchDog = True # watchdog can help you force CLOG when being interdicted or attacked
     stateOverride = '' # Debugging Options (default: none)
-
+    
     # !!! The middle destinations depend on your ship's jumping capability, so change this if necessary !!!
     firstJumpDest = 'Wredguia TH-U c16-18' # From Robigo to Sothis (3-jump middle star)
     thirdJumpDest = 'Wredguia TH-U c16-18' # From Sothis to Robigo (3-jump middle star)
@@ -136,6 +136,11 @@ if __name__ == '__main__':
                     window = session.windowCoord
                     print(getOffsetCoordByAbsolute(window,current))
                     session.sleep(0.1)
+                if keyboard.is_pressed("f10"):
+                    res1 = locateImageOnScreen(tab_sirius,confidence=0.75)[0]!=-1
+                    res2 = locateImageOnScreen(tab_siriusHL,confidence=0.55)[0]!=-1
+                    res3 = locateImageOnScreen(tab_siriusMarked,confidence=0.55)[0]!=-1
+                    print(res1,res2,res3)
             inEmergency = session.shipEmergency # Emergency
             if missionCountOverride != 0: missionCount = missionCountOverride
             else: missionCount = len(session.missionList)
@@ -149,7 +154,7 @@ if __name__ == '__main__':
                     continue
                 if failsafeState != '':machine.set_state(failsafeState)
                 if session.status == 'Docked' and progress.state == 'initial': # in while loop
-                    if len(session.missionList) < maxMissionCount : # 'get-mission'
+                    if missionCount < maxMissionCount : # 'get-mission'
                         machine.set_state('get-mission')
                         # pass
                         # if isDebug: machine.set_state('mission-received') # allow launch without missions (Debug)
@@ -352,12 +357,12 @@ if __name__ == '__main__':
                         session.sendDelay(1,block=True)
                         for i in range(20): 
                             # 因为使得POI最近的距离实在不好控制 所以遍历导航页的项目 选取 Sirius Atmospherics 
-                            res1 = locateImageOnScreen(tab_sirius,confidence=0.65)
+                            res1 = locateImageOnScreen(tab_sirius,confidence=0.7)
                             res2 = locateImageOnScreen(tab_siriusHL,confidence=0.6)
                             res3 = locateImageOnScreen(tab_siriusMarked,confidence=0.6)
                             if res2[0]!=-1 or res3[0]!=-1 : # Match Found
                                 break
-                            if (res2[0]==-1 or res3[0]==-1) and res1[0]!=-1:
+                            if (res2[0]==-1 and res3[0]==-1) or res1[0]!=-1:
                                 session.sendKey('UI_Down')
                                 session.sendDelay(2.5,block=True)
                         session.sendKey('space')
@@ -591,10 +596,14 @@ if __name__ == '__main__':
                         session.sendKey('esc')
                         session.sendDelay(2,block=True)
                     if session.guiFocus == 'NoFocus':
+                        session.sendDelay(2,block=True)
                         session.sendKey('UI_Up',repeat=3)
-                        if locateImageOnScreen(button_fuel,confidence=0.6)[0]!=-1: # Fuel Button
-                            session.sendKey('space')
-                            session.sendDelay(3,block=True)
+                        # if locateImageOnScreen(button_fuel,confidence=0.6)[0]!=-1: # Fuel Button
+                            #session.sendKey('space')
+                            #session.sendDelay(3,block=True)
+                        session.sendKey('space') # force refuel
+                        session.sendDelay(4,block=True)
+                        session.sendKey('space') # force refuel
                         session.sendDelay(1,block=True)
                         session.sendKey('UI_Down')
                         session.sendDelay(2,block=True)
@@ -630,15 +639,21 @@ if __name__ == '__main__':
                                 session.sleep(2)
                                 mouseClick(getAbsoluteCoordByOffset(windowCoord,offset_button_reward_1))
                                 session.sleep(3)
+                                backButton = locateImageOnScreen(button_back_smallHL,confidence=0.6)[0]!=-1
+                                while not backButton:  backButton = locateImageOnScreen(button_back_smallHL,confidence=0.6)[0]!=-1
+                                session.sleep(1)
                                 mouseClick(getAbsoluteCoordByOffset(windowCoord,offset_button_reward_back))
+                                # session.sendKey('space')
+                                if missionCountOverride >= 1: missionCountOverride -= 1
                             session.update()
                             missionCount = len(session.missionList)
-                            if missionCount == 0 : break # No more mission
+                            if missionCount == 0 and missionCountOverride == 0: break # No more mission
                         session.update()
                         missionCount = len(session.missionList)
                         if missionCount == 0: # all claimed
                             # auto=False
                             # failsafeState = ''
+                            missionCountOverride = 0
                             machine.set_state('initial')
 
             if align: align = session.align()
