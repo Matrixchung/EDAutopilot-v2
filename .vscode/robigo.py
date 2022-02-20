@@ -1,54 +1,57 @@
 from game import *
 import transitions
 pyautogui.FAILSAFE=False
-map_bookmark = str(fileRootPath.joinpath("templates/map_bookmark.png"))
-map_bookmarkHL = str(fileRootPath.joinpath("templates/map_bookmark_highlight.png"))
-map_sothis = str(fileRootPath.joinpath("templates/robigo/map_sothis_a_5.png"))
-map_sothisHL = str(fileRootPath.joinpath("templates/robigo/map_sothis_a_5_highlight.png"))
-map_robigo = str(fileRootPath.joinpath("templates/robigo/map_robigom.png"))
-map_robigoHL = str(fileRootPath.joinpath("templates/robigo/map_robigom_highlight.png"))
-map_plotroute = str(fileRootPath.joinpath("templates/map_plot_route.png"))
-map_plotrouteHL = str(fileRootPath.joinpath("templates/map_plot_route_highlight.png"))
+map_bookmark = loadFromFile("templates/map_bookmark.png")
+map_bookmarkHL = loadFromFile("templates/map_bookmark_highlight.png")
+map_sothis = loadFromFile("templates/robigo/map_sothis_a_5.png")
+map_sothisHL = loadFromFile("templates/robigo/map_sothis_a_5_highlight.png")
+map_robigo = loadFromFile("templates/robigo/map_robigom.png")
+map_robigoHL = loadFromFile("templates/robigo/map_robigom_highlight.png")
+map_plotroute = loadFromFile("templates/map_plot_route.png")
+map_plotrouteHL = loadFromFile("templates/map_plot_route_highlight.png")
 
-sign_scassist = str(fileRootPath.joinpath('templates/sign_scassist.png'))
-sign_align_with_target = str(fileRootPath.joinpath('templates/sign_align_with_target.png'))
-sign_autodock = str(fileRootPath.joinpath('templates/sign_auto_dock.png'))
-sign_throttle_up = str(fileRootPath.joinpath('templates/sign_throttle_up.png'))
-sign_obscured = str(fileRootPath.joinpath('templates/sign_target_obscured.png'))
-sign_fuel_filled = str(fileRootPath.joinpath('templates/sign_fuel_filled.png'))
-sign_mission = str(fileRootPath.joinpath('templates/sign_has_mission.png'))
-sign_pause_menu = str(fileRootPath.joinpath('templates/sign_pause_menu.png'))
+sign_scassist = loadFromFile('templates/sign_scassist.png')
+sign_align_with_target = loadFromFile('templates/sign_align_with_target.png')
+sign_autodock = loadFromFile('templates/sign_auto_dock.png')
+sign_throttle_up = loadFromFile('templates/sign_throttle_up.png')
+sign_obscured = loadFromFile('templates/sign_target_obscured.png')
+sign_fuel_filled = loadFromFile('templates/sign_fuel_filled.png')
+sign_mission = loadFromFile('templates/sign_has_mission.png')
+sign_pause_menu = loadFromFile('templates/sign_pause_menu.png')
 
-tab_contacts = str(fileRootPath.joinpath('templates/contacts.png'))
-tab_contactsHL = str(fileRootPath.joinpath('templates/contacts_highlight.png'))
-tab_sirius = str(fileRootPath.joinpath('templates/robigo/tab_sirius.png'))
-tab_siriusHL = str(fileRootPath.joinpath('templates/robigo/tab_sirius_highlight.png'))
-tab_siriusMarked = str(fileRootPath.joinpath('templates/robigo/tab_sirius_marked.png'))
-tab_robigomines = str(fileRootPath.joinpath('templates/robigo/tab_robigo_mines_mission.png'))
-tab_robigominesHL = str(fileRootPath.joinpath('templates/robigo/tab_robigo_mines_mission_highlight.png'))
+tab_contacts = loadFromFile('templates/contacts.png')
+tab_contactsHL = loadFromFile('templates/contacts_highlight.png')
+tab_sirius = loadFromFile('templates/robigo/tab_sirius.png')
+tab_siriusHL = loadFromFile('templates/robigo/tab_sirius_highlight.png')
+tab_siriusMarked = loadFromFile('templates/robigo/tab_sirius_marked.png')
+tab_robigominesNormal = loadFromFile('templates/robigo/tab_robigo_mines_normal.png')
+tab_robigominesMarked = loadFromFile('templates/robigo/tab_robigo_mines_marked.png')
+tab_robigominesNormalHL = loadFromFile('templates/robigo/tab_robigo_mines_normal_highlight.png')
+tab_robigomines = loadFromFile('templates/robigo/tab_robigo_mines_mission.png')
+tab_robigominesHL = loadFromFile('templates/robigo/tab_robigo_mines_mission_highlight.png')
 
-exitButton = str(fileRootPath.joinpath("templates/exit.png"))
-exitButtonHL = str(fileRootPath.joinpath("templates/exit_highlight.png"))
-launchButton = str(fileRootPath.joinpath("templates/autolaunch.png"))
-launchButtonHL = str(fileRootPath.joinpath("templates/autolaunch_highlight.png"))
-button_requestDock = str(fileRootPath.joinpath('templates/button_request_docking.png'))
-button_requestDockHL = str(fileRootPath.joinpath('templates/button_request_docking_highlight.png'))
-button_fuel = str(fileRootPath.joinpath('templates/button_fuel.png'))
-button_complete_mission = str(fileRootPath.joinpath('templates/button_complete_mission.png'))
-button_complete_missionHL = str(fileRootPath.joinpath('templates/button_complete_mission_highlight.png'))
-button_starport_service = str(fileRootPath.joinpath('templates/button_starport_services.png'))
-sign_passenger_lounge = str(fileRootPath.joinpath('templates/sign_passenger_lounge.png'))
+exitButton = loadFromFile("templates/exit.png")
+exitButtonHL = loadFromFile("templates/exit_highlight.png")
+launchButton = loadFromFile("templates/autolaunch.png")
+launchButtonHL = loadFromFile("templates/autolaunch_highlight.png")
+button_requestDock = loadFromFile('templates/button_request_docking.png')
+button_requestDockHL = loadFromFile('templates/button_request_docking_highlight.png')
+button_fuel = loadFromFile('templates/button_fuel.png')
+button_complete_mission = loadFromFile('templates/button_complete_mission.png')
+button_complete_missionHL = loadFromFile('templates/button_complete_mission_highlight.png')
+button_starport_service = loadFromFile('templates/button_starport_services.png')
+sign_passenger_lounge = loadFromFile('templates/sign_passenger_lounge.png')
 
-mission_dest = str(fileRootPath.joinpath('templates/robigo/mission_dest.png'))
-mission_destHL = str(fileRootPath.joinpath('templates/robigo/mission_dest_highlight.png'))
-mission_low_value_target = str(fileRootPath.joinpath('templates/robigo/mission_low_value_target.png'))
-mission_high_value_target = str(fileRootPath.joinpath('templates/robigo/mission_high_value_target.png'))
-button_back_smallHL = str(fileRootPath.joinpath('templates/button_back_small_highlight.png'))
-button_accept_unavail = str(fileRootPath.joinpath('templates/robigo/button_accept_unavailable.png'))
-button_accept_unavailHL = str(fileRootPath.joinpath('templates/robigo/button_accept_unavailable_highlight.png'))
-button_accept = str(fileRootPath.joinpath('templates/robigo/button_accept.png'))
+mission_dest = loadFromFile('templates/robigo/mission_dest.png')
+mission_destHL = loadFromFile('templates/robigo/mission_dest_highlight.png')
+mission_low_value_target = loadFromFile('templates/robigo/mission_low_value_target.png')
+mission_high_value_target = loadFromFile('templates/robigo/mission_high_value_target.png')
+button_back_smallHL = loadFromFile('templates/button_back_small_highlight.png')
+button_accept_unavail = loadFromFile('templates/robigo/button_accept_unavailable.png')
+button_accept_unavailHL = loadFromFile('templates/robigo/button_accept_unavailable_highlight.png')
+button_accept = loadFromFile('templates/robigo/button_accept.png')
 
-# Offset coord as follows (for mouse clicking)
+# Offset coord as follows (for mouse clicking, only in 1600x900)
 # using GetAbsoluteByOffset()
 offset_button_reward_1 = (695,633) # CR reward (1)
 offset_button_mission = (319,494)
@@ -136,11 +139,8 @@ if __name__ == '__main__':
                     window = session.windowCoord
                     print(getOffsetCoordByAbsolute(window,current))
                     session.sleep(0.1)
-                if keyboard.is_pressed("f10"):
-                    res1 = locateImageOnScreen(tab_sirius,confidence=0.75)[0]!=-1
-                    res2 = locateImageOnScreen(tab_siriusHL,confidence=0.55)[0]!=-1
-                    res3 = locateImageOnScreen(tab_siriusMarked,confidence=0.55)[0]!=-1
-                    print(res1,res2,res3)
+                if keyboard.is_pressed("f9"):
+                    pass
             inEmergency = session.shipEmergency # Emergency
             if missionCountOverride != 0: missionCount = missionCountOverride
             else: missionCount = len(session.missionList)
@@ -162,7 +162,7 @@ if __name__ == '__main__':
                         machine.set_state('mission-received')
                 
                 elif progress.state == 'get-mission':
-                    lounge = locateImageOnScreen(sign_passenger_lounge,confidence=0.6)[0]!=-1
+                    lounge = isImageInGame(sign_passenger_lounge,confidence=0.6)
                     windowCoord = session.windowCoord
                     if lounge:
                         for i in range(3): # 3 mission providers
@@ -175,18 +175,18 @@ if __name__ == '__main__':
                             session.sleep(5)
                             for j in range(6): # failsafe number 6
                                 session.sleep(1)
-                                result = locateImageOnScreen(mission_dest,confidence=0.7)
-                                result1 = locateImageOnScreen(mission_destHL,confidence=0.7)
+                                result = locateImageInGame(mission_dest,confidence=0.7)
+                                result1 = locateImageInGame(mission_destHL,confidence=0.7)
                                 if result[0]==-1 and result1[0]==-1: break # No more mission
                                 if result1[0]!=-1: pyautogui.moveTo(result1[0]-200,result1[1])
                                 else: pyautogui.moveTo(result[0]-200,result[1])
                                 session.sleep(1)
-                                result1 = locateImageOnScreen(mission_destHL,confidence=0.7)
+                                result1 = locateImageInGame(mission_destHL,confidence=0.7)
                                 if result1[0]==-1 : continue
                                 mouseClick(result1)
                                 session.sleep(2) # entering mission detail board
-                                lowValue = locateImageOnScreen(mission_low_value_target,confidence=0.6)[0]!=-1
-                                highValue = locateImageOnScreen(mission_high_value_target,confidence=0.6)[0]!=-1
+                                lowValue = isImageInGame(mission_low_value_target,confidence=0.6)
+                                highValue = isImageInGame(mission_high_value_target,confidence=0.6)
                                 if lowValue and not highValue : # low value target
                                     if isDebug: print("get-mission: Low-value target detected")
                                     session.sleep(1)
@@ -199,10 +199,10 @@ if __name__ == '__main__':
                                         session.sleep(0.5)
                                     # now we`re at the bottom, start enumerating
                                     for t in range(maxMissionCount):
-                                        backButton = locateImageOnScreen(button_back_smallHL,confidence=0.6)[0]!=-1
-                                        acceptButton = locateImageOnScreen(button_accept,confidence=0.7)[0]!=-1
-                                        acceptButton_unavail = locateImageOnScreen(button_accept_unavail,confidence=0.8)[0]!=-1
-                                        acceptButton_unavailHL = locateImageOnScreen(button_accept_unavailHL,confidence=0.7)[0]!=-1
+                                        backButton = isImageInGame(button_back_smallHL,confidence=0.6)
+                                        acceptButton = isImageInGame(button_accept,confidence=0.7)
+                                        acceptButton_unavail = isImageInGame(button_accept_unavail,confidence=0.8)
+                                        acceptButton_unavailHL = isImageInGame(button_accept_unavailHL,confidence=0.7)
                                         if backButton == False and (acceptButton or acceptButton_unavail or acceptButton_unavailHL): # ensure we're not targetting the back button and still in the picking board
                                             if t == 0: # first enumerate
                                                 session.sendKey('space')
@@ -231,11 +231,11 @@ if __name__ == '__main__':
                 elif progress.state == 'mission-received': # elif 确保一次大的while循环中只执行一次状态判断，避免状态转移导致的update滞后
                     if missionCount == 0 : machine.set_state('get-mission')
                     else:
-                        if session.shipTarget != firstJumpDest: # select-target-sothis 
+                        if session.shipTarget != firstJumpDest and session.shipTarget != 'Sothis' : # select-target-sothis 
                             session.sleep(1)
                             setDest(session,'Sothis')
                         session.sleep(2)
-                        if session.shipTarget == firstJumpDest:
+                        if session.shipTarget == firstJumpDest or session.shipTarget == 'Sothis' :
                             session.sleep(2)
                             machine.set_state('undock')
                 
@@ -278,7 +278,7 @@ if __name__ == '__main__':
                     if (('FSDJump' not in session.stateList and 'FSDCharging' not in session.stateList) and
                         'Supercruise' in session.stateList or 'FSDCooldown' in session.stateList) and session.shipLoc!='Robigo': # Waiting for jump complete
                         machine.set_state('first-sc')
-                    elif 'FSDCharging' not in session.stateList and session.shipLoc=='Robigo' and locateImageOnScreen(sign_throttle_up,confidence=0.6)[0]==-1: # need charge
+                    elif 'FSDCharging' not in session.stateList and session.shipLoc=='Robigo' and not isImageInGame(sign_throttle_up,confidence=0.6): # need charge
                         session.sendKey('EnableFSD')
                         session.sendDelay(1,block=True) # Just for update the stateList
                         session.sendDelay(15,block=True)
@@ -303,7 +303,7 @@ if __name__ == '__main__':
                     if (('FSDJump' not in session.stateList and 'FSDCharging' not in session.stateList) and
                         'Supercruise' in session.stateList or 'FSDCooldown' in session.stateList) and session.shipLoc != firstJumpDest: # Waiting for jump complete
                         machine.set_state('second-sc')
-                    elif 'FSDCharging' not in session.stateList and session.shipLoc==firstJumpDest and locateImageOnScreen(sign_throttle_up,confidence=0.6)[0]==-1: # need charge
+                    elif 'FSDCharging' not in session.stateList and session.shipLoc==firstJumpDest and not isImageInGame(sign_throttle_up,confidence=0.6): # need charge
                         session.sendKey('EnableFSD')
                         session.sendDelay(1,block=True) # Just for update the stateList
                         session.sendDelay(15,block=True)
@@ -332,13 +332,13 @@ if __name__ == '__main__':
                 
                 elif progress.state == 'first-enable-assist':
                     # Change the navigation target to Sirius Atmospherics and enable Supercruise Assist
-                    result1 = locateImageOnScreen(sign_scassist,confidence=0.8)
-                    result2 = locateImageOnScreen(sign_align_with_target,confidence=0.8)
-                    if result2[0]!=-1 or result1[0]!=-1: # Supercruise Assist active
+                    result1 = isImageInGame(sign_scassist,confidence=0.8)
+                    result2 = isImageInGame(sign_align_with_target,confidence=0.8)
+                    if result2 or result1: # Supercruise Assist active
                         # machine.set_state('first-waiting-for-arrive')
                         machine.set_state('first-auxiliary-align')
                         print('first-enable-assist:Assist Already Active!')
-                    elif result1[0]==-1 and result2[0]==-1: # Supercruise Assist not enabled
+                    elif not result1 and not result2: # Supercruise Assist not enabled
                         session.sendKey('SpeedZero')
                         session.sendDelay(3,block=True)
                         if session.guiFocus != 'NoFocus':
@@ -353,17 +353,18 @@ if __name__ == '__main__':
                         # Select Sirius Atmospherics (This time it should be the nearest POI)
                         session.sendKey('UI_Right')
                         session.sendDelay(1,block=True)
-                        session.sendKey('UI_Up',hold=4,block=True) # small trick:hold the button to get to the top
+                        session.sendKey('UI_Down',hold=4,block=True) # small trick:hold the button to get to the bottom
+                        # update: the image size acts weirdly in the bottoms, so backward iterate
                         session.sendDelay(1,block=True)
-                        for i in range(20): 
+                        for i in range(30): 
                             # 因为使得POI最近的距离实在不好控制 所以遍历导航页的项目 选取 Sirius Atmospherics 
-                            res1 = locateImageOnScreen(tab_sirius,confidence=0.7)
-                            res2 = locateImageOnScreen(tab_siriusHL,confidence=0.6)
-                            res3 = locateImageOnScreen(tab_siriusMarked,confidence=0.6)
-                            if res2[0]!=-1 or res3[0]!=-1 : # Match Found
+                            res1 = isImageInGame(tab_sirius,confidence=0.7)
+                            res2 = isImageInGame(tab_siriusHL,confidence=0.6)
+                            res3 = isImageInGame(tab_siriusMarked,confidence=0.6)
+                            if res2 or res3 : # Match Found
                                 break
-                            if (res2[0]==-1 and res3[0]==-1) or res1[0]!=-1:
-                                session.sendKey('UI_Down')
+                            if (not res2 and not res3) or res1:
+                                session.sendKey('UI_Up')
                                 session.sendDelay(2.5,block=True)
                         session.sendKey('space')
                         session.sendDelay(1,block=True)
@@ -372,9 +373,9 @@ if __name__ == '__main__':
                         session.sendDelay(1,block=True)
                         session.sendKey('esc') # back to main panel
                         session.sendDelay(5,block=True)
-                        result1 = locateImageOnScreen(sign_scassist,confidence=0.6) # re-check assist status
-                        result2 = locateImageOnScreen(sign_align_with_target,confidence=0.6)
-                        if result2[0]!=-1 or result1[0]!=-1: # Supercruise Assist active
+                        result1 = isImageInGame(sign_scassist,confidence=0.6) # re-check assist status
+                        result2 = isImageInGame(sign_align_with_target,confidence=0.6)
+                        if result2 or result1: # Supercruise Assist active
                             # machine.set_state('first-waiting-for-arrive')
                             machine.set_state('first-auxiliary-align')
                     
@@ -384,14 +385,14 @@ if __name__ == '__main__':
 
                 elif progress.state=='first-waiting-for-arrive':
                     if 'Supercruise' in session.stateList:
-                        if locateImageOnScreen(sign_obscured,confidence=0.8)[0]!=-1: # target obscured
+                        if isImageInGame(sign_obscured,confidence=0.8): # target obscured
                             print('first-waiting-for-arrive:Destination Target Obscured!') # 目标被遮挡
                             session.sunAvoiding(turnDelay=9,fwdDelay=30)
                             machine.set_state('first-auxiliary-align')
                         else: session.align()
                     # else:
-                        # result2 = locateImageOnScreen(sign_align_with_target,confidence=0.55)
-                        # if result2[0]!=-1 and 'Supercruise' in session.stateList :
+                        # result2 = isImageInGame(sign_align_with_target,confidence=0.55)
+                        # if result2 and 'Supercruise' in session.stateList :
                             # session.align()
                     if not ('Supercruise' in session.stateList) and session.status == 'normal': # add more condition
                         session.sendDelay(1,block=True)
@@ -409,11 +410,11 @@ if __name__ == '__main__':
                         machine.set_state('select-target-robigo')
 
                 elif progress.state=='select-target-robigo':
-                    if session.shipTarget != thirdJumpDest: # select-target-sothis 
+                    if session.shipTarget != thirdJumpDest and session.shipTarget != 'Robigo': # select-target-sothis 
                         session.sleep(1)
                         setDest(session,'Robigo')
                     session.sleep(2)
-                    if session.shipTarget == thirdJumpDest:
+                    if session.shipTarget == thirdJumpDest or session.shipTarget == 'Robigo': # provide direct jump capability
                         session.sleep(2)
                         machine.set_state('sothis-a-5-avoiding')
 
@@ -433,7 +434,7 @@ if __name__ == '__main__':
                     if (('FSDJump' not in session.stateList and 'FSDCharging' not in session.stateList) and
                         'Supercruise' in session.stateList or 'FSDCooldown' in session.stateList) and session.shipLoc != 'Sothis': # Waiting for jump complete
                         machine.set_state('third-sc')
-                    elif 'FSDCharging' not in session.stateList and session.shipLoc == 'Sothis' and locateImageOnScreen(sign_throttle_up,confidence=0.6)[0]==-1: # need charge
+                    elif 'FSDCharging' not in session.stateList and session.shipLoc == 'Sothis' and not isImageInGame(sign_throttle_up,confidence=0.6): # need charge
                         session.sendKey('EnableFSD')
                         session.sendDelay(1,block=True) # Just for update the stateList
                         session.sendDelay(15,block=True)
@@ -457,7 +458,7 @@ if __name__ == '__main__':
                     if (('FSDJump' not in session.stateList and 'FSDCharging' not in session.stateList) and
                         'Supercruise' in session.stateList or 'FSDCooldown' in session.stateList) and session.shipLoc != thirdJumpDest : # Waiting for jump complete
                         machine.set_state('fourth-sc')
-                    elif 'FSDCharging' not in session.stateList and session.shipLoc==thirdJumpDest and locateImageOnScreen(sign_throttle_up,confidence=0.6)[0]==-1: # need charge
+                    elif 'FSDCharging' not in session.stateList and session.shipLoc==thirdJumpDest and not isImageInGame(sign_throttle_up,confidence=0.6): # need charge
                         session.sendKey('EnableFSD')
                         session.sendDelay(1,block=True) # Just for update the stateList
                         session.sendDelay(15,block=True)
@@ -479,12 +480,12 @@ if __name__ == '__main__':
                 elif progress.state == 'second-enable-assist':
                     # just enable Supercruise Assist to Robigo Mines
                     session.sendDelay(2,block=True)
-                    result1 = locateImageOnScreen(sign_scassist,confidence=0.8)
-                    result2 = locateImageOnScreen(sign_align_with_target,confidence=0.8)
-                    if result2[0]!=-1 or result1[0]!=-1: # Supercruise Assist active
+                    result1 = isImageInGame(sign_scassist,confidence=0.8)
+                    result2 = isImageInGame(sign_align_with_target,confidence=0.8)
+                    if result2 or result1: # Supercruise Assist active
                         machine.set_state('second-waiting-for-arrive')
                         print('second-enable-assist:Assist Already Active!')
-                    elif result1[0]==-1 and result2[0]==-1: # Supercruise Assist not enabled
+                    elif not result1 and not result2: # Supercruise Assist not enabledwe
                         session.sendKey('SpeedZero')
                         session.sendDelay(3,block=True)
                         if session.guiFocus != 'NoFocus':
@@ -499,15 +500,19 @@ if __name__ == '__main__':
                         # Select Robigo Mines (This time it should be the second POI/Station while the first is NAV BEACON)
                         session.sendKey('UI_Right')
                         session.sendDelay(1,block=True)
-                        session.sendKey('UI_Up',hold=2,block=True) # small trick:hold the button to get to the top
-                        for i in range(10): # maximum 10 targets in a single tab
+                        session.sendKey('UI_Down',hold=4,block=True) # small trick:hold the button to get to the bottom
+                        # update: the image size acts weirdly in the bottoms, so backward iterate
+                        for i in range(30):
                             # 因为使得POI最近的距离实在不好控制 所以遍历导航页的项目 选取 Robigo Mines
-                            res1 = locateImageOnScreen(tab_robigomines,confidence=0.6)
-                            res2 = locateImageOnScreen(tab_robigominesHL,confidence=0.7)
-                            if res2[0]!=-1: # Match Found
+                            res1 = isImageInGame(tab_robigomines,confidence=0.7)
+                            res2 = isImageInGame(tab_robigominesHL,confidence=0.7)
+                            res3 = isImageInGame(tab_robigominesNormal,confidence=0.7)
+                            res4 = isImageInGame(tab_robigominesNormalHL,confidence=0.7)
+                            res5 = isImageInGame(tab_robigominesMarked,confidence=0.7)
+                            if res2 or res4: # Match Found
                                 break
-                            if res2[0]==-1 and res1[0]!=-1: 
-                                session.sendKey('UI_Down')
+                            if (not res2 and not res4) or (res1 or res3 or res5): 
+                                session.sendKey('UI_Up')
                                 session.sendDelay(2.5,block=True)
                         session.sendKey('space')
                         session.sendDelay(1,block=True)
@@ -516,9 +521,9 @@ if __name__ == '__main__':
                         session.sendDelay(1,block=True)
                         session.sendKey('esc') # back to main panel
                         session.sendDelay(3,block=True)
-                        result1 = locateImageOnScreen(sign_scassist,confidence=0.6) # re-check assist status
-                        result2 = locateImageOnScreen(sign_align_with_target,confidence=0.6)
-                        if result2[0]!=-1 or result1[0]!=-1: # Supercruise Assist active
+                        result1 = isImageInGame(sign_scassist,confidence=0.6) # re-check assist status
+                        result2 = isImageInGame(sign_align_with_target,confidence=0.6)
+                        if result2 or result1: # Supercruise Assist active
                             # machine.set_state('second-waiting-for-arrive')
                             machine.set_state('second-auxiliary-align')
 
@@ -528,14 +533,14 @@ if __name__ == '__main__':
                 
                 elif progress.state=='second-waiting-for-arrive':
                     if 'Supercruise' in session.stateList :
-                        if locateImageOnScreen(sign_obscured,confidence=0.8)[0]!=-1: # target obscured
+                        if isImageInGame(sign_obscured,confidence=0.8): # target obscured
                             print('second-waiting-for-arrive:Destination Target Obscured!') # 目标被遮挡
                             session.sunAvoiding(turnDelay=9,fwdDelay=30)
                             machine.set_state('second-auxiliary-align')
                         else: session.align()
                     # else:
-                        # result2 = locateImageOnScreen(sign_align_with_target,confidence=0.55)
-                        # if result2[0]!=-1 and 'Supercruise' in session.stateList :
+                        # result2 = isImageInGame(sign_align_with_target,confidence=0.55)
+                        # if result2 and 'Supercruise' in session.stateList :
                             # session.align()
                     if not ('Supercruise' in session.stateList) and session.status == 'normal': # add more condition
                         session.sendDelay(1,block=True)
@@ -559,11 +564,11 @@ if __name__ == '__main__':
                             session.sendKey('UI_1')
                             session.sendDelay(1,block=True)
 
-                    result1 = locateImageOnScreen(tab_contactsHL,confidence=0.6)
+                    result1 = locateImageInGame(tab_contactsHL,confidence=0.6)
                     if result1[0] == -1: # Not in contacts Tab
                         session.sendKey('UI_PrevTab') # trick : often in navigation tab,so previous tab is contact
                         session.sendDelay(0.5,block=True)
-                        result1 = locateImageOnScreen(tab_contactsHL,confidence=0.6)
+                        result1 = locateImageInGame(tab_contactsHL,confidence=0.6)
                         if result1[0] == -1: # in Transaction tab initially
                             session.sendKey('UI_PrevTab')
                             session.sendDelay(0.5,block=True)
@@ -572,14 +577,14 @@ if __name__ == '__main__':
                     session.sendKey('UI_Left',repeat=2)
                     session.sendKey('UI_Right',repeat=2)
                     session.sendDelay(1,block=True)
-                    result1=locateImageOnScreen(button_requestDockHL,confidence=0.6)
-                    if result1[0]!=-1:
+                    result1=isImageInGame(button_requestDockHL,confidence=0.6)
+                    if result1:
                         session.sendKey('space')
                         session.sendDelay(5,block=True)
                         session.sendKey('esc') # back to main panel and let's check if the docking computer is active
                         session.sendDelay(3,block=True)
-                        result1=locateImageOnScreen(sign_autodock,confidence=0.6)
-                        if result1[0]!=-1 or session.status == 'docking': # Autodock active
+                        result1=isImageInGame(sign_autodock,confidence=0.6)
+                        if result1 or session.status == 'docking': # Autodock active
                             machine.set_state('waiting-for-docked')
                         else: # docking request denied
                             session.sleep(10) # sleep for 10s
@@ -598,7 +603,7 @@ if __name__ == '__main__':
                     if session.guiFocus == 'NoFocus':
                         session.sendDelay(2,block=True)
                         session.sendKey('UI_Up',repeat=3)
-                        # if locateImageOnScreen(button_fuel,confidence=0.6)[0]!=-1: # Fuel Button
+                        # if isImageInGame(button_fuel,confidence=0.6): # Fuel Button
                             #session.sendKey('space')
                             #session.sendDelay(3,block=True)
                         session.sendKey('space') # force refuel
@@ -617,7 +622,7 @@ if __name__ == '__main__':
                 elif progress.state=='claim-task-reward': # Auto claim task rewards
                     windowCoord = session.windowCoord
                     session.sleep(10) # depends on internet connection
-                    if session.guiFocus != 'StationServices' or locateImageOnScreen(sign_passenger_lounge,confidence=0.6)[0]==-1: machine.set_state('goto-passenger')
+                    if session.guiFocus != 'StationServices' or not isImageInGame(sign_passenger_lounge,confidence=0.6): machine.set_state('goto-passenger')
                     else:
                         for i in range(3): # 3 mission providers
                             if i == 0 : # check first provider
@@ -629,18 +634,18 @@ if __name__ == '__main__':
                             session.sleep(5)
                             for j in range(10): # failsafe number 10 (in fact the max mission number is 7)
                                 session.sleep(1)
-                                result = locateImageOnScreen(button_complete_mission,confidence=0.6)
+                                result = locateImageInGame(button_complete_mission,confidence=0.6)
                                 if result[0]==-1: break # No more mission
                                 pyautogui.moveTo(result[0]-200,result[1]) # prevent mouse cursor
                                 session.sleep(1)
-                                result1 = locateImageOnScreen(button_complete_missionHL,confidence=0.6)
+                                result1 = locateImageInGame(button_complete_missionHL,confidence=0.6)
                                 if result1[0]==-1 : continue
                                 mouseClick(result1)
                                 session.sleep(2)
                                 mouseClick(getAbsoluteCoordByOffset(windowCoord,offset_button_reward_1))
                                 session.sleep(3)
-                                backButton = locateImageOnScreen(button_back_smallHL,confidence=0.6)[0]!=-1
-                                while not backButton:  backButton = locateImageOnScreen(button_back_smallHL,confidence=0.6)[0]!=-1
+                                backButton = isImageInGame(button_back_smallHL,confidence=0.6)
+                                while not backButton:  backButton = isImageInGame(button_back_smallHL,confidence=0.6)
                                 session.sleep(1)
                                 mouseClick(getAbsoluteCoordByOffset(windowCoord,offset_button_reward_back))
                                 # session.sendKey('space')

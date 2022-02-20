@@ -1,4 +1,5 @@
 .vscode/__pycache__/*
+.vscode/utils/__pycache__/*
 .vscode/*.json
 /*.png
 *.deprecated

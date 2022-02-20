@@ -4,9 +4,10 @@
 # What can it do?
  - Auto align with the displayed navigation circle
  - Run the Robigo Sightseeing mission unmanned with support for **full-automated** process
- - Provide a gameSession API which you can write your own autonomous script (examples on the way)
+ - Provide a gameSession API which you can write your own autonomous script, see [game.py](https://github.com/Matrixchung/EDAutopilot/blob/master/.vscode/game.py) for API reference.(examples on the way)
  - You can fork it as you wish to make changes
-# How to use it?
+
+# Getting started
  1. Download the source code
  ```
  git clone https://github.com/Matrixchung/EDAutopilot.git

@@ -4,7 +4,6 @@
 # http://www.gamespp.com/directx/directInputKeyboardScanCodes.html
 
 import ctypes
-import time
 SendInput = ctypes.windll.user32.SendInput
 # C struct redefinitions
 PUL = ctypes.POINTER(ctypes.c_ulong)

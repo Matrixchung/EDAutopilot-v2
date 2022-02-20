@@ -1,4 +1,4 @@
-from utils import *
+from utils.utils import *
 class gameSession:
     isDebug = False
     targetX = targetY = navCenter = 0

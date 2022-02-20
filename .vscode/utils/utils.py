@@ -12,10 +12,10 @@ import time
 import numpy as np
 import traceback
 from ctypes import windll
-from journal import *
-from directinputs import *
-from keybinds import *
-from status import *
+from utils.journal import *
+from utils.directinputs import *
+from utils.keybinds import *
+from utils.status import *
 
 ## Constants
 ALIGN_TRIMM_DELAY = 0.030
@@ -24,6 +24,7 @@ KEY_REPEAT_DELAY = 0.200
 MOUSE_CLICK_DELAY = 0.200
 DELAY_BETWEEN_KEYS = 1.5
 ALIGN_DEAD_ZONE = 1.2
+TEMPLATE_CIRCLE_DEAD_ZONE = 52
 SLEEP_UPDATE_DELAY = 0.1
 WATCHDOG_SCANNING_DELAY = 1.0 # Time for watchdog scanning if we're in emergency situation
 
@@ -89,18 +90,13 @@ def checkAlignWithTemplate(centerImg,circleImg):
     result = cv2.matchTemplate(binary, circleImg, cv2.TM_CCOEFF)
     min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
     th,tw = circleImg.shape[:2]
-    centerImg = cv2.cvtColor(centerImg,cv2.COLOR_GRAY2RGB)
-    if max_val > 10000000:
+    if max_val > 10000000: # I dont know why
         tl = max_loc
         br = (tl[0] + tw, tl[1] + th)
-        # cv2.rectangle(centerImg, tl, br, (0, 0, 255), 2)
         cirCenter = (tl[0]+br[0])/2-60,(tl[1]+br[1])/2 # 应去位置
         center = 180,220 # 指向位置
-        # if abs(center[0]-cirCenter[0])<35 and abs(center[1]-cirCenter[1])<35 : result = True
-        if abs(center[0]-cirCenter[0])<60 and abs(center[1]-cirCenter[1])<60 : result = True
-        
+        if abs(center[0]-cirCenter[0])<TEMPLATE_CIRCLE_DEAD_ZONE and abs(center[1]-cirCenter[1])<TEMPLATE_CIRCLE_DEAD_ZONE : result = True
     return result
-    # return centerImg
 
 # Image Processing Thread
 def imageProcessing(coordShrName):
@@ -239,6 +235,55 @@ def getNavPointsByCompass(compassImg,compassHsv): # NO IMAGE RETURN NEEDED
     # return (targetX,targetY),navCenter,compassShowImg,navShowImg
     return (targetX,targetY),navCenter # NO IMAGE RETURN NEEDED
 
+def loadImage(img, grayscale=None):
+    # load images if given filename, or convert as needed to opencv
+    # Alpha layer just causes failures at this point, so flatten to RGB.
+    # to matchTemplate, need template and image to be the same wrt having alpha
+
+    if isinstance(img, str):
+        # The function imread loads an image from the specified file and
+        # returns it. If the image cannot be read (because of missing
+        # file, improper permissions, unsupported or invalid format),
+        # the function returns an empty matrix
+        # http://docs.opencv.org/3.0-beta/modules/imgcodecs/doc/reading_and_writing_images.html
+        if grayscale:
+            img_cv = cv2.imread(img, cv2.IMREAD_GRAYSCALE)
+        else:
+            img_cv = cv2.imread(img, cv2.IMREAD_COLOR)
+        if img_cv is None:
+            raise IOError("Failed to read %s because file is missing, "
+                          "has improper permissions, or is an "
+                          "unsupported or invalid format" % img)
+    elif isinstance(img, np.ndarray):
+        # don't try to convert an already-gray image to gray
+        if grayscale and len(img.shape) == 3:  # and img.shape[2] == 3:
+            img_cv = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        else: # input image is already a numpy array
+            img_cv = img
+    elif hasattr(img, 'convert'):
+        # assume its a PIL.Image, convert to cv format
+        img_array = np.array(img.convert('RGB'))
+        img_cv = img_array[:, :, ::-1].copy()  # -1 does RGB -> BGR
+        if grayscale:
+            img_cv = cv2.cvtColor(img_cv, cv2.COLOR_BGR2GRAY)
+    else:
+        raise TypeError('expected an image filename, OpenCV numpy array, or PIL image')
+    return img_cv
+
+def loadFromFile(pathName,absolute=False,grayscale=False):
+    absPath = pathName
+    if not absolute: absPath = joinPath(pathName)
+    return loadImage(absPath,grayscale=grayscale)
+
+def locate(templateImg,originImg,confidence=0.999,limit=100): # template: BGR, originImg: BGR
+    # get all matches at once, credit: https://stackoverflow.com/questions/7670112/finding-a-subimage-inside-a-numpy-image/9253805#9253805
+    result = cv2.matchTemplate(originImg, templateImg, cv2.TM_CCOEFF_NORMED)
+    match_indices = np.arange(result.size)[(result > confidence).flatten()]
+    matches = np.unravel_index(match_indices[:limit], result.shape)
+    # use a generator for API consistency:
+    for x, y in zip(matches[1], matches[0]):
+        yield x,y
+
 def screenCapture(toFile=True):
     gameCoord,hwnd = getWindowRectByName(globalWindowName)
     if toFile is True:
@@ -248,26 +293,36 @@ def screenCapture(toFile=True):
         img = pyautogui.screenshot(region=gameCoord)
         return img
 
-def locateImageOnScreen(img,confidence=None,region=None):
+def locateImageInGame(targetImg,relRegion=None,confidence=None,absolute=True,windowName=globalWindowName): # relRegion: relative region in game, absolute: return absolute coords insteads of relative coords for mouse-clicking
+    if relRegion is not None:
+        assert len(relRegion)==4 , 'Error in locateImageInGame(): invalid relative region' # startX,startY,endX,endY
+    gameCoord,hwnd = getWindowRectByName(windowName)
     try:
+        originImgRGB = pyautogui.screenshot(region=gameCoord)
+        originImg = cv2.cvtColor(np.asarray(originImgRGB),cv2.COLOR_RGB2BGR)
+        if relRegion is not None:
+            originImg = originImg[relRegion[0]:relRegion[2],relRegion[1]:relRegion[3]]
         if confidence is not None:
-            if region is not None: imageBox = pyautogui.locateOnScreen(img,confidence=confidence,region=region)
-            else: imageBox = pyautogui.locateOnScreen(img,confidence=confidence)
-        else:
-            if region is not None: imageBox = pyautogui.locateOnScreen(img,region=region)
-            else: imageBox = pyautogui.locateOnScreen(img)
-        if imageBox is None: return (-1,-1)
-        else:
-            imageLoc = pyautogui.center(imageBox)
-            return imageLoc
+            results = tuple(locate(targetImg,originImg,confidence=confidence,limit=10))
+        else: results = tuple(locate(targetImg,originImg,limit=10))
+        if len(results) == 0: # Not Found
+            return (-1,-1)
+        # will return the center position
+        bestResult = results[0]
+        targetHeight, targetWidth = targetImg.shape[:2]
+        if absolute:
+            return gameCoord[0]+bestResult[0]+(targetWidth/2),gameCoord[1]+bestResult[1]+(targetHeight/2)
+        return bestResult[0]+(targetWidth/2),bestResult[1]+(targetHeight/2)
     except:
         traceback.print_exc()
+def isImageInGame(*args, **kwargs):
+    return locateImageInGame(*args, **kwargs)[0]!=-1
 
 def locateButtons(img,imgHL,confidence1=None,confidence2=None):
-    if confidence1 is not None: imgLoc = locateImageOnScreen(img,confidence=confidence1)
-    else: imgLoc = locateImageOnScreen(img)
-    if confidence2 is not None: imgHL = locateImageOnScreen(imgHL,confidence=confidence2)
-    else : imgHL = locateImageOnScreen(imgHL)
+    if confidence1 is not None: imgLoc = locateImageInGame(img,confidence=confidence1)
+    else: imgLoc = locateImageInGame(img)
+    if confidence2 is not None: imgHL = locateImageInGame(imgHL,confidence=confidence2)
+    else : imgHL = locateImageInGame(imgHL)
     if imgHL[0] == -1: return imgLoc
     if imgLoc[0] == -1: return imgHL
     
@@ -320,11 +375,13 @@ def getOffsetCoordByAbsolute(origin,abs):
     return abs[0]-origin[0],abs[1]-origin[1]
 
 def mouseClick(*args): # y=None to provide compability to Tuple
+    argLength = len(args)
+    assert argLength == 1 or argLength == 2, 'Error in mouseClick(): invalid argument'
     clickX = clickY = None
-    if len(args) == 1 and args[0][0]>=0 and args[0][1]>=0 : # Tuple
+    if argLength == 1 and args[0][0]>=0 and args[0][1]>=0 : # Tuple
         clickX = args[0][0]
         clickY = args[0][1]
-    elif len(args) == 2 and args[0]>=0 and args[1]>=0 : # x,y
+    elif argLength == 2 and args[0]>=0 and args[1]>=0 : # x,y
         clickX = args[0]
         clickY = args[1]
     pyautogui.mouseDown(clickX,clickY)
@@ -358,3 +415,10 @@ def isProcessExist(processName):
     for pid in pids:
         if psutil.Process(pid).name() == processName: return True
     return False
+
+def joinPath(pathName):
+    if '.vscode' in str(fileRootPath): root = fileRootPath.parent
+    else: root = fileRootPath
+    if pathName[0] == '/' or pathName[0] == '\\': pathName = pathName[1:]
+    result = str(root.joinpath(pathName))
+    return result
