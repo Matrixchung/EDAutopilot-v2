@@ -1,10 +1,11 @@
 # EDAutopilot 
  - An autopilot bot for Elite:Dangerous based on OpenCV+Python.
  - Notice: this program **only** works in *Elite Dangerous: Horizons* currently
+
 # What can it do?
  - Auto align with the displayed navigation circle
  - Run the Robigo Sightseeing mission unmanned with support for **full-automated** process
- - Provide a gameSession API which you can write your own autonomous script, see [game.py](https://github.com/Matrixchung/EDAutopilot/blob/master/.vscode/game.py) for API reference.(examples on the way)
+ - Provide a gameSession API which you can write your own autonomous script, see [game.py](.vscode/game.py) for API reference.(examples on the way)
  - You can fork it as you wish to make changes
 
 # Getting started
@@ -12,21 +13,22 @@
  ```
  git clone https://github.com/Matrixchung/EDAutopilot.git
  ```
- 2. Make sure you have applied the [Useful Settings](https://github.com/Matrixchung/EDAutopilot#useful-settings) (Best recommended, because I write this entire project in those settings)
- 3. Run ```pip install -r .\requirements.txt``` to install all dependencies
- 4. Go to .vscode folder and run the script robigo.py (For Robigo Sightseeing Mission, or you can write your own)
+ 1. Make sure you have applied the [Useful Settings](#useful-settings) (Best recommended, because I write this entire project in those settings)
+ 2. Run ```pip install -r .\requirements.txt``` to install all dependencies
+ 3. Go to .vscode folder and run the script robigo.py (For Robigo Sightseeing Mission, or you can write your own)
  ``` python ./robigo.py```
  5. When you are at Robigo Mines, **enter the starport menu and go to Passenger Lounge**, then simply click the Home button, and you can just sit back
  6. You can terminate the running process anytime when you click the End button. (Sometimes it may not kick in when in a sleep loop)
  7. You can leave the process unsupervised, but you should keep the mouse cursor on the Client Screen and manually takeover when it comes to interdict you
- 8. See the [Variables](https://github.com/Matrixchung/EDAutopilot#Variables) for any self-configurable variables
+ 8. See the [Variables](#variables) for any self-configurable variables
 
 # Tips
  - In order not to get interdicted, you should only choose 'Low-value target' mission, which is displayed in the mission details. The other traits can be ignored cause we are in the 'Outpost' and won't be scanned.
  - Currently I'm annoyed at money-grabbing stuffs (for my Fleet Carrier), so currently this project will only play its role as a simple sightseeing mission bot. Given that I have already created a gameSession API, we can expect more features like multi-hop jumping assist for long distance travel etc. in the future. And if you want, you can fork it to do any modifications you want.
+ - This project has not been tested on *Windows 11* yet, so please use it at your own risk.
 
 # Variables
-- [robigo.py](https://github.com/Matrixchung/EDAutopilot/blob/master/.vscode/robigo.py)
+- [robigo.py](.vscode/robigo.py)
 
     <table>
         <tr>
@@ -78,13 +80,13 @@
 	 2. 1920x1080 Desktop Resolution
  - In-Game Settings:
      1. Set the Navigation Filter(in the first panel) to **ONLY STATIONS** and **POINTS OF INTEREST**
-	 2. Bookmark **Sothis A 5** and **Robigo Mines** in the Galaxy Map, which means you have to run the mission yourself for at least once(to discover the destination planet), you can see [Sothis A 5](https://github.com/Matrixchung/EDAutopilot/blob/master/templates/robigo/map_sothis_a_5.png) and [Robigo Mines](https://github.com/Matrixchung/EDAutopilot/blob/master/templates/robigo/map_robigom.png) for example.
+	 1. Bookmark **Sothis A 5** and **Robigo Mines** in the Galaxy Map, which means you have to run the mission yourself for at least once(to discover the destination planet), you can see [Sothis A 5](templates/robigo/map_sothis_a_5.png) and [Robigo Mines](templates/robigo/map_robigom.png) for example.
  - Robigo Mission preferred ship: Python https://s.orbis.zone/i1dm
  - Note for Robigo mission: whatever your ship is, make sure its jumping capability is enough to provide a **two-hop** route, which means only **one** middle destination for a single way.
  - FOV Setting: (YOUR_APPDATA_PATH/Local/Frontier Developments/Elite Dangerous/Options/Graphics/Settings.xml)
  ```<FOV>56.249001</FOV>```
  - Keybinds: (You can probably edit it in keybinds.py, but remember to apply them all manually to your **In-Game Settings**)
- ```
+ ```python
  keysDict = {
     'YawLeftButton': 0x1E, # Key A
     'YawRightButton': 0x20, # Key D
@@ -116,7 +118,7 @@
 }
  ```
  - GUIColor Setting: (YOUR_STEAM_LIBRARY_PATH/steamapps/common/Elite Dangerous/Products/elite-dangerous-64/GraphicsConfiguration.xml)
- ```
+ ```xml
  <GUIColour>
 		<Default>
 			<LocalisationName>Standard</LocalisationName>
