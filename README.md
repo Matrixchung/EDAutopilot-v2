@@ -4,8 +4,8 @@
 
 # What can it do?
  - Auto align with the displayed navigation circle
- - Run the Robigo Sightseeing mission unmanned with support for **full-automated** process 
- Showcase: [here](https://streamable.com/p8mhoz) (*accelerated, no manual key input at all*)
+ - Run the Robigo Sightseeing mission unmanned with support for **full-automated** process  
+Showcase: [here](https://streamable.com/p8mhoz) (*accelerated, no manual key input at all*)
  - Provide a gameSession API which you can write your own autonomous script, see [game.py](.vscode/game.py) for API reference.(examples on the way)
  - You can fork it as you wish to make changes
 
