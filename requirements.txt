@@ -5,6 +5,6 @@ PyAutoGUI==0.9.53
 pyscreeze==0.1.28
 pywin32==301
 transitions==0.8.10
-opencv_python==4.4.0.46
+opencv_python==4.5.5.62
 opencv-contrib-python==4.5.5.62
 opencv-python-headless==4.5.5.62
