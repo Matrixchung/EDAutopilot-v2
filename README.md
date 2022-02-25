@@ -4,7 +4,8 @@
 
 # What can it do?
  - Auto align with the displayed navigation circle
- - Run the Robigo Sightseeing mission unmanned with support for **full-automated** process
+ - Run the Robigo Sightseeing mission unmanned with support for **full-automated** process 
+ Showcase: [here](https://streamable.com/p8mhoz) (*accelerated, no manual key input at all*)
  - Provide a gameSession API which you can write your own autonomous script, see [game.py](.vscode/game.py) for API reference.(examples on the way)
  - You can fork it as you wish to make changes
 
@@ -80,7 +81,8 @@
 	 2. 1920x1080 Desktop Resolution
  - In-Game Settings:
      1. Set the Navigation Filter(in the first panel) to **ONLY STATIONS** and **POINTS OF INTEREST**
-	 1. Bookmark **Sothis A 5** and **Robigo Mines** in the Galaxy Map, which means you have to run the mission yourself for at least once(to discover the destination planet), you can see [Sothis A 5](templates/robigo/map_sothis_a_5.png) and [Robigo Mines](templates/robigo/map_robigom.png) for example.
+	 2. Bookmark **Sothis A 5** and **Robigo Mines** in the Galaxy Map, which means you have to run the mission yourself for at least once(to discover the destination planet), you can see [Sothis A 5](templates/robigo/map_sothis_a_5.png) and [Robigo Mines](templates/robigo/map_robigom.png) for example.
+     3. Set the **INTERFACE BRIGHTNESS** to **Level 6-7** (in *Right Panel/4# Panel - SHIP - PILOT PREFERENCES*)
  - Robigo Mission preferred ship: Python https://s.orbis.zone/i1dm
  - Note for Robigo mission: whatever your ship is, make sure its jumping capability is enough to provide a **two-hop** route, which means only **one** middle destination for a single way.
  - FOV Setting: (YOUR_APPDATA_PATH/Local/Frontier Developments/Elite Dangerous/Options/Graphics/Settings.xml)
