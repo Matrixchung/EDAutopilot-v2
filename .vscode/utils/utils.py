@@ -52,7 +52,14 @@ hsvUIUp = np.array([124,254,254]) # Filter UI
 hsvNavPointLow = np.array([21,30,0])
 hsvNavPointUp = np.array([179,254,254]) # Filter navPoints
 
-destCircleImg = cv2.imread("templates/dest_circle.png",0)
+def joinPath(pathName):
+    if '.vscode' in str(fileRootPath): root = fileRootPath.parent
+    else: root = fileRootPath
+    if pathName[0] == '/' or pathName[0] == '\\': pathName = pathName[1:]
+    result = str(root.joinpath(pathName))
+    return result
+
+destCircleImg = cv2.imread(joinPath("templates/dest_circle.png"),0)
 
 ## In-Game Utils
 
@@ -416,9 +423,3 @@ def isProcessExist(processName):
         if psutil.Process(pid).name() == processName: return True
     return False
 
-def joinPath(pathName):
-    if '.vscode' in str(fileRootPath): root = fileRootPath.parent
-    else: root = fileRootPath
-    if pathName[0] == '/' or pathName[0] == '\\': pathName = pathName[1:]
-    result = str(root.joinpath(pathName))
-    return result
