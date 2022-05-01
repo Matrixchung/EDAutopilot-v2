@@ -18,6 +18,7 @@ from utils.keybinds import *
 from utils.status import *
 
 ## Constants
+IMAGE_QUEUE_SIZE = 8 # targetX,targetY,navCenter,isAligned,isFocused,elapsedTime,windowLeftX,windowTopY
 ALIGN_TRIMM_DELAY = 0.030
 KEY_DEFAULT_DELAY = 0.120
 KEY_REPEAT_DELAY = 0.200
@@ -100,13 +101,13 @@ def checkAlignWithTemplate(centerImg,circleImg):
     if max_val > 10000000: # I dont know why
         tl = max_loc
         br = (tl[0] + tw, tl[1] + th)
-        cirCenter = (tl[0]+br[0])/2-60,(tl[1]+br[1])/2 # 应去位置
-        center = 180,220 # 指向位置
+        cirCenter = (tl[0]+br[0])/2-60,(tl[1]+br[1])/2 # template circle's center
+        center = 180,220 # current center
         if abs(center[0]-cirCenter[0])<TEMPLATE_CIRCLE_DEAD_ZONE and abs(center[1]-cirCenter[1])<TEMPLATE_CIRCLE_DEAD_ZONE : result = True
     return result
 
 # Image Processing Thread
-def imageProcessing(coordShrName):
+def imageProcessing(coordShrName,isShowImg):
     isAligned = 0
     windowHwnd = win32gui.FindWindow(None,globalWindowName)
     while True:
@@ -120,8 +121,8 @@ def imageProcessing(coordShrName):
             img = pyautogui.screenshot(region=gameCoord)
         
             gameResolution = gameCoord[2],gameCoord[3]
-            # gameCenterActual = gameCoord[0]+gameCoord[2]/2,gameCoord[1]+gameCoord[3]/2 # 绝对中点 用于鼠标操作
-            gameCenterRel = gameCoord[2]/2,gameCoord[3]/2 # 相对中点
+            # gameCenterActual = gameCoord[0]+gameCoord[2]/2,gameCoord[1]+gameCoord[3]/2 
+            gameCenterRel = gameCoord[2]/2,gameCoord[3]/2 
 
             # outsideOffsetY = (gameCoord[3]/3)*2
             cv2OriginImg = cv2.cvtColor(np.asarray(img),cv2.COLOR_RGB2BGR)
@@ -133,16 +134,16 @@ def imageProcessing(coordShrName):
         
             compassOriginImg = cv2OriginImg[int(gameResolution[1]/1.63):int(gameResolution[1]/1.06),int(gameResolution[0]/4.04):int(gameResolution[0]/2.02)]
             compassHsv = cv2.cvtColor(compassOriginImg,cv2.COLOR_BGR2HSV)
-            # compassShowImg = compassOriginImg.copy() # screen overlay
+            compassShowImg = compassOriginImg.copy() # screen overlay
 
             if checkAlignWithTemplate(centerImg,destCircleImg) is True: isAligned = 1
             else: isAligned = 0
 
-            # (targetX,targetY),navCenter,compassShowImg,navShowImg = getNavPointsByCompass(compassImg,compassShowImg,compassHsv) # NO IMAGE RETURN NEEDED
-            (targetX,targetY),navCenter = getNavPointsByCompass(compassImg,compassHsv)
+            # (targetX,targetY),navCenter,compassShowImg,navShowImg = getNavPointsByCompass(compassImg,compassShowImg,compassHsv) 
+            (targetX,targetY),navCenter = getNavPointsByCompass(compassImg,compassShowImg,compassHsv,isShowImg)
 
             shr_coord = shared_memory.SharedMemory(name=coordShrName)
-            coordArray = np.ndarray(shape=8,dtype=np.float64,buffer=shr_coord.buf)
+            coordArray = np.ndarray(shape=IMAGE_QUEUE_SIZE,dtype=np.float64,buffer=shr_coord.buf)
             elapsedTime = time.time()-startTime
             coordArray[:] = [targetX,targetY,navCenter,isAligned,isFocused,elapsedTime,gameCoord[0],gameCoord[1]]  
         except:
@@ -150,7 +151,7 @@ def imageProcessing(coordShrName):
             # traceback.print_exc()
 
 def createSharedCoordsBlock(name='ImgCoords'): # targetX,targetY,navCenter,isAligned,isFocused,elapsedTime,windowLeftX,windowTopY
-    a = np.zeros(8)
+    a = np.zeros(IMAGE_QUEUE_SIZE)
     shr = shared_memory.SharedMemory(create=True,name=name,size=a.nbytes)
     npArray = np.ndarray(a.shape,dtype=np.float64,buffer=shr.buf)
     npArray[:] = a[:]
@@ -178,30 +179,30 @@ def watchdog(terminate,debug): # terminate: allow watchdog to force terminate th
         time.sleep(WATCHDOG_SCANNING_DELAY)
 
 # Window Utils
-# def getNavPointsByCompass(compassImg,compassShowImg,compassHsv):
 navPointsPrevX = -1.0
 navPointsPrevY = -1.0
-def getNavPointsByCompass(compassImg,compassHsv): # NO IMAGE RETURN NEEDED
+def getNavPointsByCompass(compassImg,compassShowImg,compassHsv,isShowImg):
+# def getNavPointsByCompass(compassImg,compassHsv): # NO IMAGE RETURN NEEDED
     global navPointsPrevX,navPointsPrevY
     try:
         compassHsvUI = cv2.inRange(compassHsv,hsvUILow,hsvUIUp)
         maskedImg = compassImg.copy()
-        maskedImg = filterColorInMask(maskedImg,compassHsvUI,highlight=True) # 反向高亮
+        maskedImg = filterColorInMask(maskedImg,compassHsvUI,highlight=True)
         # binary = maskedImg.copy()
         # ret1,binary1 = cv2.threshold(maskedImg,130,255,cv2.THRESH_TOZERO_INV)
         # ret,binary = cv2.threshold(binary1,100,255,cv2.THRESH_BINARY) 
         # del ret1,ret
         # # binary = cv2.dilate(binary,kernel)
         # # binary = cv2.blur(binary,(3,3))
-        # # binary = cv2.equalizeHist(binary) # 直方图均衡化 
-        # binary = cv2.GaussianBlur(binary,(3,3),0) # 高斯滤波
-        # binary = cv2.medianBlur(binary, 5) # 中值滤波
+        # # binary = cv2.equalizeHist(binary)
+        # binary = cv2.GaussianBlur(binary,(3,3),0)
+        # binary = cv2.medianBlur(binary, 5)
         binary = cv2.GaussianBlur(maskedImg,(3,3),0)
         circles = cv2.HoughCircles(binary, method=cv2.HOUGH_GRADIENT,dp=1,minDist=200,param1=50,param2=48,minRadius=20,maxRadius=30) 
         if circles is not None:
             circles = circles[0,:]
             compassX,compassY,compassRadius=circles[0]
-            # cv2.circle(compassShowImg, (int(compassX),int(compassY)), int(compassRadius), (36,255,12), 2)
+            cv2.circle(compassShowImg, (int(compassX),int(compassY)), int(compassRadius), (36,255,12), 2)
             if compassRadius !=0 : 
                 navPointImg = compassImg[int(compassY-compassRadius)-10:int(compassY+compassRadius)+10,int(compassX-compassRadius)-10:int(compassX+compassRadius)+10]
                 navPointHsv = compassHsv[int(compassY-compassRadius)-10:int(compassY+compassRadius)+10,int(compassX-compassRadius)-10:int(compassX+compassRadius)+10]
@@ -210,7 +211,7 @@ def getNavPointsByCompass(compassImg,compassHsv): # NO IMAGE RETURN NEEDED
                 navCenter = compassRadius+10.0
                 navPointImg = cv2.GaussianBlur(navPointImg,(7,7),0)
                 navPoints = keyPointDetector(navPointImg)
-                # navShowImg = cv2.cvtColor(navPointImg,cv2.COLOR_GRAY2RGB)
+                navShowImg = cv2.cvtColor(navPointImg,cv2.COLOR_GRAY2RGB)
                 if navPoints is not None:
                     # targetX = int(navPoints[0])
                     # targetY = int(navPoints[1])
@@ -219,28 +220,33 @@ def getNavPointsByCompass(compassImg,compassHsv): # NO IMAGE RETURN NEEDED
                     if navPointsPrevX == -1.0 or navPointsPrevY == -1.0: # initialize
                         navPointsPrevX = targetX
                         navPointsPrevY = targetY
-                    elif abs(navPointsPrevX-targetX)>=40 or abs(navPointsPrevY-targetY)>=40: # 滤波
+                    elif abs(navPointsPrevX-targetX)>=40 or abs(navPointsPrevY-targetY)>=40:
                         targetX = navPointsPrevX
                         targetY = navPointsPrevY
                     else:
                         navPointsPrevX = targetX
                         navPointsPrevY = targetY
-                    # cv2.circle(navShowImg, (targetX,targetY), 2, (36,255,12), 2) # 圈出识别点
-                    # cv2.line(navShowImg,(int(navCenter),int(navCenter)),(int(targetX),int(targetY)),(0,255,0)) # 中点与导航点连线
-                    # cv2.putText(compassShowImg,"target:%s,%s"%(int(targetX),int(targetY)),(10,20),cv2.FONT_HERSHEY_DUPLEX,1,(0,255,0))
+                    if targetX != -1 and targetY != -1:
+                        cv2.circle(navShowImg, (int(targetX),int(targetY)), 2, (36,255,12), 2)
+                        cv2.line(navShowImg,(int(navCenter),int(navCenter)),(int(targetX),int(targetY)),(0,255,0))
+                    cv2.putText(compassShowImg,"target:%s,%s"%(int(targetX),int(targetY)),(10,20),cv2.FONT_HERSHEY_DUPLEX,1,(0,255,0))
                 else: 
-                    # cv2.putText(compassShowImg,"Target Not Found",(10,20),cv2.FONT_HERSHEY_DUPLEX,1,(0,255,0))
+                    cv2.putText(compassShowImg,"target:x",(10,20),cv2.FONT_HERSHEY_DUPLEX,1,(0,255,0))
                     targetX=targetY=-1.0
         else:
             targetX=targetY=navCenter=-1.0
-            # navShowImg = None
+            navShowImg = None
     except Exception as e: 
         print('Error in getNavPointsByCompass()')
-        # traceback.print_exc()
+        traceback.print_exc()
         targetX=targetY=navCenter=-1.0
-        # navShowImg = None
-    # return (targetX,targetY),navCenter,compassShowImg,navShowImg
-    return (targetX,targetY),navCenter # NO IMAGE RETURN NEEDED
+        navShowImg = None
+    if isShowImg:
+        if compassShowImg is not None : cv2.imshow('compass',compassShowImg)
+        if navShowImg is not None: cv2.imshow('navpoints',navShowImg)
+        cv2.waitKey(1)
+    return (targetX,targetY),navCenter
+    # return (targetX,targetY),navCenter # NO IMAGE RETURN NEEDED
 
 def loadImage(img, grayscale=None):
     # load images if given filename, or convert as needed to opencv

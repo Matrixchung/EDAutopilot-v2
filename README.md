@@ -43,6 +43,11 @@ Showcase: [here](https://streamable.com/p8mhoz) (*accelerated, no manual key inp
             <th>True</th>
         </tr>
         <tr>
+            <th>showProcessedImg</th>
+            <th>Show the extra compassImg and navPointImg for detailed debug</th>
+            <th>True</th>
+        </tr>
+        <tr>
             <th>usingWatchDog</th>
             <th>Watchdog can help you force exit when being interdicted or attacked</th>
             <th>True</th>
@@ -79,6 +84,11 @@ Showcase: [here](https://streamable.com/p8mhoz) (*accelerated, no manual key inp
  - Optimized Graphics Settings: 
      1. 1600x900 Windowed and in Primary Screen
 	 2. 1920x1080 Desktop Resolution
+     3. Detailed Graphics Settings:
+        - ![graphics-1](img/graphics1.jpg)
+        - ![graphics-2](img/graphics2.jpg)
+        - ![graphics-3](img/graphics3.jpg)
+        **I don't know whether I used some 3rd-party graphics quality patch(a long time ago), so the graphics may still be different from yours even if all in-game settings are correct. Feel free to make issue if you still encounter problems such as can't recognize some images etc.**
  - In-Game Settings:
      1. Set the Navigation Filter(in the first panel) to **ONLY STATIONS** and **POINTS OF INTEREST**
 	 2. Bookmark **Sothis A 5** and **Robigo Mines** in the Galaxy Map, which means you have to run the mission yourself for at least once(to discover the destination planet), you can see [Sothis A 5](templates/robigo/map_sothis_a_5.png) and [Robigo Mines](templates/robigo/map_robigom.png) for example.

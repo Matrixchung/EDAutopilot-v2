@@ -95,6 +95,7 @@ progress = p()
 if __name__ == '__main__': 
     ## USER_DEFINITIONS_AREA_BEGINS
     isDebug = True
+    showProcessedImg = True # show the compassImg and navpoint for debug
     usingWatchDog = True # watchdog can help you force CLOG when being interdicted or attacked
     stateOverride = '' # Debugging Options (default: none)
     
@@ -115,7 +116,7 @@ if __name__ == '__main__':
     initialState = 'initial' # do not change! (default: initial)
     if stateOverride != '':initialState=stateOverride
     machine = transitions.Machine(model=progress,states=states,initial=initialState)
-    session = gameSession(debug=isDebug,watchDog=usingWatchDog)
+    session = gameSession(debug=isDebug,watchDog=usingWatchDog,showImg=showProcessedImg)
     align = False
     auto = False
     startTime = datetime.now()
@@ -128,7 +129,8 @@ if __name__ == '__main__':
         try:
             session.update()
             # 输入区
-            if keyboard.is_pressed('o'): align = True
+            if keyboard.is_pressed('o'): 
+                align = True
             if keyboard.is_pressed('home'): 
                 auto = True
                 startTime = datetime.now()

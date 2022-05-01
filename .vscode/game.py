@@ -13,12 +13,14 @@ class gameSession:
     shipEmergency = False # Under attack / interdicted / being scanned
     imageProcessTime = 1.0
     windowCoord = (0,0) # Left and Top coord
+    showImg = False
 
-    def __init__(self,gameName=globalWindowName,name=None,debug=False,watchDog=False):
+    def __init__(self,gameName=globalWindowName,name=None,debug=False,showImg=False,watchDog=False):
         if name is None: self.name='Session_1'
         else: self.name = name
         self.shmName = 'shm_'+self.name
         self.isDebug = debug
+        self.showImg = showImg
         if self.isDebug :
             print("Now Creating SharedMemory Block...")
         try:
@@ -33,7 +35,7 @@ class gameSession:
         try:
             self.eventQueue = Queue(maxsize=1)
             self.eventProcess = Process(target=eventsHandler,args=(self.eventQueue,))
-            self.imageProcess = Process(target=imageProcessing,args=(self.shmCoord.name,))
+            self.imageProcess = Process(target=imageProcessing,args=(self.shmCoord.name,self.showImg))
             self.eventProcess.daemon = True
             self.imageProcess.daemon = True
             self.imageProcess.start()
@@ -49,7 +51,7 @@ class gameSession:
             print('Image and Event Processes Started')
         self.update()
     
-    def update(self, full=True): # 从io和图像处理模块读取数据
+    def update(self, full=True): # read updates from imageProcess
         windowLeftX = 0
         windowTopY = 0
         self.targetX,self.targetY,self.navCenter,self.isAligned,self.isFocused,self.imageProcessTime,windowLeftX,windowTopY = self.shmCoordArray
@@ -89,9 +91,9 @@ class gameSession:
                 updateTime += updateDelay
         self.update()
 
-    def align(self,update=False): # 基本只靠 Template Matching
-        if update: self.update() # 调用一次update，因此align(self)应该在while循环内调用，这里默认为在外部循环中已经update，整个while只需要一次update，减少io
-        if self.targetX == -1 or self.targetY == -1 : return True # 有时候会停着不动= =
+    def align(self,update=False): 
+        if update: self.update()
+        if self.targetX == -1 or self.targetY == -1 : return True # 
         if self.isAligned == 1 or self.isFocused == 0: return False
         offsetX = abs(self.targetX-self.navCenter)
         offsetY = abs(self.targetY-self.navCenter)
@@ -103,7 +105,7 @@ class gameSession:
             if offsetY>ALIGN_DEAD_ZONE:
                 if self.targetY<self.navCenter: self.sendKey('PitchUpButton',hold=KEY_DEFAULT_DELAY-trimY)
                 else : self.sendKey('PitchDownButton',hold=KEY_DEFAULT_DELAY-trimY)
-            elif offsetX>ALIGN_DEAD_ZONE: # elif 使得在两轴坐标都大于死区时先校准Y轴（Python的Pitch轴俯仰较为灵敏）
+            elif offsetX>ALIGN_DEAD_ZONE: # align Y-Axis first
                 if self.targetX>self.navCenter: self.sendKey('YawRightButton',hold=KEY_DEFAULT_DELAY-trimX)
                 else : self.sendKey('YawLeftButton',hold=KEY_DEFAULT_DELAY-trimX)
         return True
