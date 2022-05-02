@@ -27,8 +27,8 @@ tab_siriusMarked = loadFromFile('templates/robigo/tab_sirius_marked.png')
 tab_robigominesNormal = loadFromFile('templates/robigo/tab_robigo_mines_normal.png')
 tab_robigominesMarked = loadFromFile('templates/robigo/tab_robigo_mines_marked.png')
 tab_robigominesNormalHL = loadFromFile('templates/robigo/tab_robigo_mines_normal_highlight.png')
-tab_robigomines = loadFromFile('templates/robigo/tab_robigo_mines_mission.png')
-tab_robigominesHL = loadFromFile('templates/robigo/tab_robigo_mines_mission_highlight.png')
+tab_robigomines = loadFromFile('templates/robigo/tab_robigo_mines_mission2.png')
+tab_robigominesHL = loadFromFile('templates/robigo/tab_robigo_mines_mission_highlight2.png')
 
 exitButton = loadFromFile("templates/exit.png")
 exitButtonHL = loadFromFile("templates/exit_highlight.png")
@@ -65,15 +65,36 @@ offset_button_reward_back = (649,872) # back button in rewarding screen/mission 
 offset_button_pick_cabin = (893,872)
 offset_pick_cabin_bottom = (1044,796)
 
+# def setDest(session,dest):
+#     if session.guiFocus != 'GalaxyMap':
+#         session.sendKey('UI_OpenGalaxyMap') # Toggle Map
+#         session.sleep(3)
+#     bookmarkLoc = locateButtons(map_bookmark,map_bookmarkHL,confidence1=0.7,confidence2=0.7)
+#     if bookmarkLoc[0] == -1:
+#         print("Error in setDest(): Cannot find any bookmark button")
+#         return False
+#     mouseClick(bookmarkLoc)
+#     session.sleep(2)
+#     if dest == 'Sothis': destLoc = locateButtons(map_sothis,map_sothisHL,confidence1=0.8,confidence2=0.8)
+#     elif dest == 'Robigo': destLoc = locateButtons(map_robigo,map_robigoHL,confidence1=0.7,confidence2=0.7)
+#     else : return False
+#     session.sleep(1)
+#     mouseClick(destLoc)
+#     session.sleep(3)
+#     plotRoute = locateButtons(map_plotroute,map_plotrouteHL,confidence1=0.8,confidence2=0.8)
+#     if plotRoute[0] != -1:
+#         session.sleep(2)
+#         mouseClick(plotRoute)
+#         session.sleep(3)
+#         session.sendKey('UI_OpenGalaxyMap')
+#         return True
+
 def setDest(session,dest):
-    if session.guiFocus != 'GalaxyMap': 
+    if session.guiFocus != 'GalaxyMap':
         session.sendKey('UI_OpenGalaxyMap') # Toggle Map
         session.sleep(3)
-    bookmarkLoc = locateButtons(map_bookmark,map_bookmarkHL,confidence1=0.7,confidence2=0.7)
-    if bookmarkLoc[0] == -1:
-        print("Error in setDest(): Cannot find any bookmark button")
-        return False
-    mouseClick(bookmarkLoc)
+        session.sendKey('UI_NextTab',repeat=2,repeat_delay=0.5)
+
     session.sleep(2)
     if dest == 'Sothis': destLoc = locateButtons(map_sothis,map_sothisHL,confidence1=0.8,confidence2=0.8)
     elif dest == 'Robigo': destLoc = locateButtons(map_robigo,map_robigoHL,confidence1=0.7,confidence2=0.7)
@@ -81,14 +102,10 @@ def setDest(session,dest):
     session.sleep(1)
     mouseClick(destLoc)
     session.sleep(3)
-    plotRoute = locateButtons(map_plotroute,map_plotrouteHL,confidence1=0.8,confidence2=0.8)
-    if plotRoute[0] != -1:
-        session.sleep(2)
-        mouseClick(plotRoute)
-        session.sleep(3)
-        session.sendKey('UI_OpenGalaxyMap')
-        return True
-
+    session.sendKey('space')
+    session.sleep(3)
+    session.sendKey('UI_OpenGalaxyMap')
+    return True
 class p(object):
     pass
 progress = p()
@@ -102,7 +119,7 @@ if __name__ == '__main__':
     # !!! The middle destinations depend on your ship's jumping capability, so change this if necessary !!!
     firstJumpDest = 'Wredguia TH-U c16-18' # From Robigo to Sothis (3-jump middle star)
     thirdJumpDest = 'Wredguia TH-U c16-18' # From Sothis to Robigo (3-jump middle star)
-    maxMissionCount = 8
+    maxMissionCount = 12
     missionCountOverride = 0 # For any unread missions or the mission count not shown properly
     ## USER_DEFINITIONS_AREA_ENDS
 
@@ -179,6 +196,7 @@ if __name__ == '__main__':
                                 session.sleep(1)
                                 result = locateImageInGame(mission_dest,confidence=0.7)
                                 result1 = locateImageInGame(mission_destHL,confidence=0.7)
+                                print("Result",result,"Result HL",result)
                                 if result[0]==-1 and result1[0]==-1: break # No more mission
                                 if result1[0]!=-1: pyautogui.moveTo(result1[0]-200,result1[1])
                                 else: pyautogui.moveTo(result[0]-200,result[1])
@@ -192,7 +210,11 @@ if __name__ == '__main__':
                                 if lowValue and not highValue : # low value target
                                     if isDebug: print("get-mission: Low-value target detected")
                                     session.sleep(1)
-                                    mouseClick(getAbsoluteCoordByOffset(windowCoord,offset_button_pick_cabin))
+                                    # mouseClick(getAbsoluteCoordByOffset(windowCoord,offset_button_pick_cabin))
+                                    session.sendKey('UI_Right')
+                                    session.sendDelay(1)
+                                    session.sendKey('space')
+                                    session.sendDelay(1)
                                     session.sleep(1)
                                     pyautogui.moveTo(getAbsoluteCoordByOffset(windowCoord,offset_pick_cabin_bottom))
                                     session.sleep(1)
@@ -202,6 +224,7 @@ if __name__ == '__main__':
                                     # now we`re at the bottom, start enumerating
                                     for t in range(maxMissionCount):
                                         backButton = isImageInGame(button_back_smallHL,confidence=0.6)
+                                        print("backButton",backButton)
                                         acceptButton = isImageInGame(button_accept,confidence=0.7)
                                         acceptButton_unavail = isImageInGame(button_accept_unavail,confidence=0.8)
                                         acceptButton_unavailHL = isImageInGame(button_accept_unavailHL,confidence=0.7)
@@ -210,6 +233,7 @@ if __name__ == '__main__':
                                                 session.sendKey('space')
                                                 session.sendDelay(1)
                                             else:
+                                                print("Estoy en uiUp")
                                                 session.sendKey('UI_Up')
                                                 session.sendDelay(1)
                                                 session.sendKey('space')
@@ -218,7 +242,12 @@ if __name__ == '__main__':
                                             break
                                 else: # high-value
                                     if isDebug: print("get-mission: High-value target detected")
-                                    mouseClick(getAbsoluteCoordByOffset(windowCoord,offset_button_reward_back))
+                                    # mouseClick(getAbsoluteCoordByOffset(windowCoord,offset_button_reward_back))
+                                    session.sendKey('enter')
+                                    session.sendDelay(1)
+                                    # Now go one down to avoid infinite loop in the same mission
+                                    session.sendKey('UI_Down')
+                                    session.sendDelay(1)
                                 session.sleep(2)
                                 session.update()
                                 missionCount = len(session.missionList)
@@ -649,7 +678,9 @@ if __name__ == '__main__':
                                 backButton = isImageInGame(button_back_smallHL,confidence=0.6)
                                 while not backButton:  backButton = isImageInGame(button_back_smallHL,confidence=0.6)
                                 session.sleep(1)
-                                mouseClick(getAbsoluteCoordByOffset(windowCoord,offset_button_reward_back))
+                                # mouseClick(getAbsoluteCoordByOffset(windowCoord,offset_button_reward_back))
+
+                                session.sendKey('enter') # Avoid offsets problems while pressing back button
                                 # session.sendKey('space')
                                 if missionCountOverride >= 1: missionCountOverride -= 1
                             session.update()
