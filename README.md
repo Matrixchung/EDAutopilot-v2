@@ -2,6 +2,8 @@
  - An autopilot bot for Elite:Dangerous based on OpenCV+Python.
  - Notice: this program **only** works in *Elite Dangerous: Horizons* currently
  - *Windows 11* Compatible
+ - Structure:
+ ![struct](/img/struct.jpg)
 
 # What can it do?
  - Auto align with the displayed navigation circle
