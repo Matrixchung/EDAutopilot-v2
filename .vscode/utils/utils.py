@@ -50,8 +50,8 @@ hsvWhiteUp = np.array([179,55,254]) # Filter White
 # hsvUILow = np.array([100,43,46])
 hsvUILow = np.array([75,45,51])
 hsvUIUp = np.array([124,254,254]) # Filter UI
-hsvNavPointLow = np.array([21,30,0])
-hsvNavPointUp = np.array([179,254,254]) # Filter navPoints
+hsvNavPointLow = np.array([11,43,46])
+hsvNavPointUp = np.array([25,254,254]) # Filter navPoints
 
 def joinPath(pathName):
     if '.vscode' in str(fileRootPath): root = fileRootPath.parent
@@ -210,6 +210,7 @@ def getNavPointsByCompass(compassImg,compassShowImg,compassHsv,isShowImg):
                 navPointImg = filterColorInMask(navPointImg,navPointHsv)
                 navCenter = compassRadius+10.0
                 navPointImg = cv2.GaussianBlur(navPointImg,(7,7),0)
+                # _, navPointImg = cv2.threshold(navPointImg,10,255,cv2.THRESH_BINARY)# To make not-black pixels white
                 navPoints = keyPointDetector(navPointImg)
                 navShowImg = cv2.cvtColor(navPointImg,cv2.COLOR_GRAY2RGB)
                 if navPoints is not None:
