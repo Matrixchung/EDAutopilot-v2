@@ -1,5 +1,3 @@
-from email.policy import default
-import logging
 from os import environ, listdir
 from os.path import join, isfile, getmtime
 from xml.dom.minidom import parse
@@ -220,7 +218,7 @@ def init_keybinds():
     list_of_bindings = [join(keyBindsPath, f) for f in listdir(keyBindsPath) if isfile(join(keyBindsPath, f)) and f.endswith('.binds')]
     if not list_of_bindings: 
         latestBindsPath = ''
-        logging.warning('No keybinds found')
+        print('No keybinds found')
         return
     else: latestBindsPath = max(list_of_bindings, key=getmtime)
     origin = parse(latestBindsPath)
