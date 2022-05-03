@@ -7,8 +7,6 @@ map_sothis = loadFromFile("templates/robigo/map_sothis_a_5.png")
 map_sothisHL = loadFromFile("templates/robigo/map_sothis_a_5_highlight.png")
 map_robigo = loadFromFile("templates/robigo/map_robigom.png")
 map_robigoHL = loadFromFile("templates/robigo/map_robigom_highlight.png")
-map_plotroute = loadFromFile("templates/map_plot_route.png")
-map_plotrouteHL = loadFromFile("templates/map_plot_route_highlight.png")
 
 sign_scassist = loadFromFile('templates/sign_scassist.png')
 sign_align_with_target = loadFromFile('templates/sign_align_with_target.png')
@@ -81,13 +79,10 @@ def setDest(session,dest):
     session.sleep(1)
     mouseClick(destLoc)
     session.sleep(3)
-    plotRoute = locateButtons(map_plotroute,map_plotrouteHL,confidence1=0.8,confidence2=0.8)
-    if plotRoute[0] != -1:
-        session.sleep(2)
-        mouseClick(plotRoute)
-        session.sleep(3)
-        session.sendKey('UI_OpenGalaxyMap')
-        return True
+    session.sendKey('space')
+    session.sleep(3)
+    session.sendKey('UI_OpenGalaxyMap')
+    return True
 
 class p(object):
     pass
