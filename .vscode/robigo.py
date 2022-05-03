@@ -215,7 +215,7 @@ if __name__ == '__main__':
                                 else: # high-value
                                     if isDebug: print("get-mission: High-value target detected")
                                     # mouseClick(getAbsoluteCoordByOffset(windowCoord,offset_button_reward_back))
-                                    session.sendKey('enter')
+                                    session.sendKey('UI_Back')
                                     session.sendDelay(1)
                                     # Now go one down to avoid infinite loop in the same mission
                                     session.sendKey('UI_Down')

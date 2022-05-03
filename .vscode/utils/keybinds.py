@@ -26,6 +26,7 @@ defaultDict = {
     'UI_Down': 0x1F, # Key S
     'UI_Left': 0x1E, # Key A
     'UI_Right': 0x20, # Key D
+    'UI_Back': 0x0E, # Backspace
     'UI_1': 0x02, # Key 1
     'UI_2': 0x03, # Key 2
     'UI_3': 0x04, # Key 3
@@ -79,7 +80,7 @@ SCANCODE = {
     'KEY_0'               : 0x0B,
     'KEY_MINUS'           : 0x0C,    # - on main keyboard */
     'KEY_EQUALS'          : 0x0D,
-    'KEY_BACK'            : 0x0E,    # backspace */
+    'KEY_BACKSPACE'       : 0x0E,    # backspace */
     'KEY_TAB'             : 0x0F,
     'KEY_Q'               : 0x10,
     'KEY_W'               : 0x11,
@@ -209,7 +210,9 @@ latestBindsPath = ""
 def keyTranslate(keyName):
     if keyName in convert_to_direct_keys: keyName = convert_to_direct_keys[keyName]
     keyName = keyName.upper()
-    if keyName not in SCANCODE: return 0x00
+    if keyName not in SCANCODE: 
+        print(keyName+" is not in SCANCODE list!!")
+        return 0x00
     return SCANCODE[keyName]
 
 def init_keybinds():
