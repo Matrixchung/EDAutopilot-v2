@@ -60,18 +60,15 @@ offset_button_provider_3 = (293,520) # third
 offset_button_mission_back = (281,872) # back button in mission board/passenger lounge
 offset_button_stationservice_exit = (326,808)
 offset_button_reward_back = (649,872) # back button in rewarding screen/mission detail board
-offset_button_pick_cabin = (893,872)
+# offset_button_pick_cabin = (893,872)
 offset_pick_cabin_bottom = (1044,796)
 
 def setDest(session,dest):
     if session.guiFocus != 'GalaxyMap': 
         session.sendKey('UI_OpenGalaxyMap') # Toggle Map
         session.sleep(3)
-    bookmarkLoc = locateButtons(map_bookmark,map_bookmarkHL,confidence1=0.7,confidence2=0.7)
-    if bookmarkLoc[0] == -1:
-        print("Error in setDest(): Cannot find any bookmark button")
-        return False
-    mouseClick(bookmarkLoc)
+    session.sleep(1)
+    session.sendKey('UI_NextTab',repeat=2,repeat_delay=0.5)
     session.sleep(2)
     if dest == 'Sothis': destLoc = locateButtons(map_sothis,map_sothisHL,confidence1=0.8,confidence2=0.8)
     elif dest == 'Robigo': destLoc = locateButtons(map_robigo,map_robigoHL,confidence1=0.7,confidence2=0.7)
@@ -187,7 +184,11 @@ if __name__ == '__main__':
                                 if lowValue and not highValue : # low value target
                                     if isDebug: print("get-mission: Low-value target detected")
                                     session.sleep(1)
-                                    mouseClick(getAbsoluteCoordByOffset(windowCoord,offset_button_pick_cabin))
+                                    # mouseClick(getAbsoluteCoordByOffset(windowCoord,offset_button_pick_cabin))
+                                    session.sendKey('UI_Right')
+                                    session.sendDelay(1)
+                                    session.sendKey('space')
+                                    session.sendDelay(1)
                                     session.sleep(1)
                                     pyautogui.moveTo(getAbsoluteCoordByOffset(windowCoord,offset_pick_cabin_bottom))
                                     session.sleep(1)
@@ -213,7 +214,12 @@ if __name__ == '__main__':
                                             break
                                 else: # high-value
                                     if isDebug: print("get-mission: High-value target detected")
-                                    mouseClick(getAbsoluteCoordByOffset(windowCoord,offset_button_reward_back))
+                                    # mouseClick(getAbsoluteCoordByOffset(windowCoord,offset_button_reward_back))
+                                    session.sendKey('enter')
+                                    session.sendDelay(1)
+                                    # Now go one down to avoid infinite loop in the same mission
+                                    session.sendKey('UI_Down')
+                                    session.sendDelay(1)
                                 session.sleep(2)
                                 session.update()
                                 missionCount = len(session.missionList)
