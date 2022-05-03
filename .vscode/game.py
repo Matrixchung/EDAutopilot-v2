@@ -21,8 +21,6 @@ class gameSession:
         self.shmName = 'shm_'+self.name
         self.isDebug = debug
         self.showImg = showImg
-        if self.isDebug :
-            print("Now Creating SharedMemory Block...")
         try:
             sharedMem,coordArray = createSharedCoordsBlock(name=self.shmName)
             if sharedMem is not None:
@@ -32,23 +30,22 @@ class gameSession:
             traceback.print_exc() # TODO: Implement it with LOGGER API
         if self.isDebug:
             if self.shmCoord is not None: print('SharedMemory Block Created: ',self.shmCoord.name)
+        keysDict = init_keybinds()
         try:
             self.eventQueue = Queue(maxsize=1)
-            self.eventProcess = Process(target=eventsHandler,args=(self.eventQueue,))
+            self.eventProcess = Process(target=eventsHandler,args=(self.eventQueue,keysDict))
             self.imageProcess = Process(target=imageProcessing,args=(self.shmCoord.name,self.showImg))
             self.eventProcess.daemon = True
             self.imageProcess.daemon = True
             self.imageProcess.start()
             self.eventProcess.start()
             if watchDog:
-                print("Watchdog for "+self.name+" is enabled")
+                print("Watchdog for "+self.name+" is enabled.")
                 self.watchDogProcess = Process(target=watchdog,args=(watchDog,debug,))
                 self.watchDogProcess.daemon = True
                 self.watchDogProcess.start()
         except:
             traceback.print_exc()
-        if self.isDebug:
-            print('Image and Event Processes Started')
         self.update()
     
     def update(self, full=True): # read updates from imageProcess
@@ -123,6 +120,6 @@ class gameSession:
         self.shmCoord.close()
         self.shmCoord.unlink()
         if self.isDebug:
-            print('SharedMemory Block Successfully Closed and Unlinked')
+            print('shm block closed')
         self.imageProcess.terminate()
         self.eventProcess.terminate()

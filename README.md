@@ -99,38 +99,7 @@ Showcase: [here](https://streamable.com/p8mhoz) (*accelerated, no manual key inp
  - Note for Robigo mission: whatever your ship is, make sure its jumping capability is enough to provide a **two-hop** route, which means only **one** middle destination for a single way.
  - FOV Setting: (YOUR_APPDATA_PATH/Local/Frontier Developments/Elite Dangerous/Options/Graphics/Settings.xml)
  ```<FOV>56.249001</FOV>```
- - Keybinds: (You can probably edit it in keybinds.py, but remember to apply them all manually to your **In-Game Settings**)
- ```python
- keysDict = {
-    'YawLeftButton': 0x1E, # Key A
-    'YawRightButton': 0x20, # Key D
-    'PitchUpButton': 0xB5, # NUM /
-    'PitchDownButton': 0x37, # NUM *
-    'RollLeftButton': 0x4E, # NUM +
-    'RollRightButton': 0x9C, # NUM ENTER
-    'EnableFSD': 0x24, # Key J
-    'EngineBoost': 0x0F, # Key Tab
-    'Speed100': 0x47, # NUM 7
-    'SpeedZero': 0x2D, # Key X
-    'Speed50': 0x48, # NUM 8
-    'ThrustUp': 0x13, # Key R
-    'space': 0x39,
-    'TargetAhead': 0x14, # Key T 
-    'UI_OpenGalaxyMap': 0x4A, # NUM -
-    'UI_NextTab': 0x12, # Key E
-    'UI_PrevTab': 0x10, # Key Q
-    'UI_Up': 0x11, # Key W
-    'UI_Down': 0x1F, # Key S
-    'UI_Left': 0x1E, # Key A
-    'UI_Right': 0x20, # Key D
-    'UI_1': 0x02, # Key 1
-    'UI_2': 0x03, # Key 2
-    'UI_3': 0x04, # Key 3
-    'UI_4': 0x05, # Key 4
-    'enter': 0x1C, # Key RETURN(ENTER)
-    'esc': 0x01 # Key ESC
-}
- ```
+ - Keybinds: The program will automatically parse your keybinds settings.
  - GUIColor Setting: (YOUR_STEAM_LIBRARY_PATH/steamapps/common/Elite Dangerous/Products/elite-dangerous-64/GraphicsConfiguration.xml)
  ```xml
  <GUIColour>

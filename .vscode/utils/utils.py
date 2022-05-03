@@ -67,7 +67,7 @@ destCircleImg = cv2.imread(joinPath("templates/dest_circle.png"),0)
 def getSunPercent(outsideImage):
     return # WIP
 
-def sendHexKey(key, hold=None, repeat=1, repeat_delay=None, state=None):
+def sendHexKey(keysDict, key, hold=None, repeat=1, repeat_delay=None, state=None):
     global KEY_MOD_DELAY, KEY_DEFAULT_DELAY, KEY_REPEAT_DELAY
     if key is None:
         logging.warning('Send an empty key')
@@ -158,13 +158,13 @@ def createSharedCoordsBlock(name='ImgCoords'): # targetX,targetY,navCenter,isAli
     return shr,npArray
 
 # Event Thread
-def eventsHandler(q):
+def eventsHandler(q,dict):
     while True:
         params=q.get()
         if params == 'ENDQUEUE':
             break
         elif params[0] == 'KEY' and isForegroundWindow(globalWindowName):
-            sendHexKey(params[1],params[2],params[3],params[4],params[5])
+            sendHexKey(dict, params[1],params[2],params[3],params[4],params[5])
         elif params[0] == 'DELAY':
             time.sleep(params[1])
 
