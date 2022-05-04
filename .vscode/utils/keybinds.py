@@ -227,28 +227,32 @@ def init_keybinds():
     emptyKeys = []
     successKeys = 0
     for keyName in defaultDict:
-        if keyName[0].isupper(): # start from captial
+        if keyName[0].isupper(): # start from capital
             if keyName in aliasDict:
                 keybind = rootNode.getElementsByTagName(aliasDict[keyName])[0]
             else: keybind = rootNode.getElementsByTagName(keyName)[0]
             primary = keybind.getElementsByTagName('Primary')[0]
             primaryDevice = primary.getAttribute('Device')
-            key = keyTranslate(primary.getAttribute('Key'))
-            if primaryDevice == 'Keyboard' and key != 0x0:
-                defaultDict[keyName] = key
-                successKeys += 1
-                # print("Successfully added "+keyName+" "+key+" "+hex(keyTranslate(key)))
-            else: # fall to secondary
-                second = keybind.getElementsByTagName('Secondary')[0]
-                secondDevice = second.getAttribute('Device')
-                key = keyTranslate(second.getAttribute('Key'))
-                if secondDevice == 'Keyboard' and key != 0x0:
+            if primaryDevice == 'Keyboard':
+                key = keyTranslate(primary.getAttribute('Key'))
+                if key != 0x0:
                     defaultDict[keyName] = key
                     successKeys += 1
                     # print("Successfully added "+keyName+" "+key+" "+hex(keyTranslate(key)))
-                else: # no key is specific
-                    emptyKeys.append(keyName)
+                    continue 
+            # fall to secondary
+            second = keybind.getElementsByTagName('Secondary')[0]
+            secondDevice = second.getAttribute('Device')
+            if secondDevice == 'Keyboard':
+                key = keyTranslate(second.getAttribute('Key'))
+                if key != 0x0:
+                    defaultDict[keyName] = key
+                    successKeys += 1
+                    # print("Successfully added "+keyName+" "+key+" "+hex(keyTranslate(key)))
+                    continue    
+            emptyKeys.append(keyName)# no key is specific
     if len(emptyKeys)>0:
         print('Error in setting keybind(s): '+str(emptyKeys))
+        print('You may have to bind the keybind(s) in game manually')
     print('Successfully added '+str(successKeys)+' keybinds, '+str(len(emptyKeys))+' failed.')
     return defaultDict
