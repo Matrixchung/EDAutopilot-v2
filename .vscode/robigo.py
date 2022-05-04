@@ -205,11 +205,13 @@ if __name__ == '__main__':
                                             if t == 0: # first enumerate
                                                 session.sendKey('space')
                                                 session.sendDelay(1)
+                                                session.sleep(1)
                                             else:
                                                 session.sendKey('UI_Up')
                                                 session.sendDelay(1)
                                                 session.sendKey('space')
                                                 session.sendDelay(1)
+                                                session.sleep(1)
                                         else:
                                             break
                                 else: # high-value
