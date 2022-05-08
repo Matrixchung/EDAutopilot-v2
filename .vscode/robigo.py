@@ -95,7 +95,7 @@ if __name__ == '__main__':
     firstJumpDest = 'Wredguia TH-U c16-18' # From Robigo to Sothis (3-jump middle star)
     thirdJumpDest = 'Wredguia TH-U c16-18' # From Sothis to Robigo (3-jump middle star)
     maxMissionCount = 8
-    missionCountOverride = 8 # For any unread missions or the mission count not shown properly
+    missionCountOverride = 0 # For any unread missions or the mission count not shown properly
     ## USER_DEFINITIONS_AREA_ENDS
 
     states = ['initial','get-mission','mission-received','select-target-sothis','undock','thrust-up','first-align','first-jump', # in Robigo
