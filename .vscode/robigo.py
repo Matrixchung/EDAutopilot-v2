@@ -618,12 +618,12 @@ if __name__ == '__main__':
                         # Repair
                         session.sendKey('UI_Right')
                         session.sendDelay(1, block=True)
-                        session.sendKey('space')  # force refuel
+                        session.sendKey('space')  # force repair
                         session.sendDelay(1, block=True)
                         # Restock
                         session.sendKey('UI_Right')
                         session.sendDelay(1, block=True)
-                        session.sendKey('space')  # force refuel
+                        session.sendKey('space')  # force stock
                         session.sendDelay(1, block=True)
 
                         session.sendKey('UI_Down')
