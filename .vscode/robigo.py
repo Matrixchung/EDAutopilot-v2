@@ -611,14 +611,25 @@ if __name__ == '__main__':
                         # if isImageInGame(button_fuel,confidence=0.6): # Fuel Button
                             #session.sendKey('space')
                             #session.sendDelay(3,block=True)
-                        session.sendKey('space') # force refuel
-                        session.sendDelay(4,block=True)
-                        session.sendKey('space') # force refuel
-                        session.sendDelay(1,block=True)
+                        session.sendKey('space')  # force refuel
+                        session.sendDelay(4, block=True)
+                        session.sendKey('space')  # force refuel
+                        session.sendDelay(1, block=True)
+                        # Repair
+                        session.sendKey('UI_Right')
+                        session.sendDelay(1, block=True)
+                        session.sendKey('space')  # force repair
+                        session.sendDelay(1, block=True)
+                        # Restock
+                        session.sendKey('UI_Right')
+                        session.sendDelay(1, block=True)
+                        session.sendKey('space')  # force stock
+                        session.sendDelay(1, block=True)
+
                         session.sendKey('UI_Down')
-                        session.sendDelay(2,block=True)
-                        session.sendKey('space') # auto fuel and go to Station Services
-                        session.sendDelay(5,block=True) 
+                        session.sendDelay(2, block=True)
+                        session.sendKey('space')  # auto fuel and go to Station Services
+                        session.sendDelay(5, block=True)
                     if session.guiFocus == 'StationServices':
                         session.sleep(2)
                         mouseClick(getAbsoluteCoordByOffset(windowCoord,offset_button_passenger))
