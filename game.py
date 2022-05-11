@@ -95,6 +95,13 @@ class gameSession:
         offsetX = abs(self.targetX-self.navCenter)
         offsetY = abs(self.targetY-self.navCenter)
         # if offsetX<0.2 and offsetY<0.2: return False # magic number: minimum range for SimpleBlobDetector
+        #         --
+        #         --
+        #         --
+        # ------------------
+        #         --
+        #         --
+        #         --
         if self.eventQueue.empty():
             trimX = trimY = 0.0
             if offsetX<3: trimX = ALIGN_TRIMM_DELAY

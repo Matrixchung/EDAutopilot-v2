@@ -9,7 +9,7 @@
  - Auto align with the displayed navigation circle
  - Run the Robigo Sightseeing mission unmanned with support for **full-automated** process  
 Showcase: [here](https://streamable.com/p8mhoz) (*accelerated, no manual key input at all*)
- - Provide a gameSession API which you can write your own autonomous script, see [game.py](.vscode/game.py) for API reference.(examples on the way)
+ - Provide a gameSession API which you can write your own autonomous script, see [game.py](game.py) for API reference.(examples on the way)
  - You can fork it as you wish to make changes
 
 # Getting started
@@ -19,7 +19,7 @@ Showcase: [here](https://streamable.com/p8mhoz) (*accelerated, no manual key inp
  ```
  1. Make sure you have applied the [Useful Settings](#useful-settings) (Best recommended, because I write this entire project in those settings)
  2. Run ```pip install -r .\requirements.txt``` to install all dependencies
- 3. Go to .vscode folder and run the script robigo.py (For Robigo Sightseeing Mission, or you can write your own)
+ 3. Run the script robigo.py (For Robigo Sightseeing Mission, or you can write your own)
  ``` python ./robigo.py```
  5. When you are at Robigo Mines, **enter the starport menu and go to Passenger Lounge**, then simply click the Home button, and you can just sit back
  6. You can terminate the running process anytime when you click the End button. (Sometimes it may not kick in when in a sleep loop)
@@ -31,7 +31,7 @@ Showcase: [here](https://streamable.com/p8mhoz) (*accelerated, no manual key inp
  - Currently I'm annoyed at money-grabbing stuffs (for my Fleet Carrier), so currently this project will only play its role as a simple sightseeing mission bot. Given that I have already created a gameSession API, we can expect more features like multi-hop jumping assist for long distance travel etc. in the future. And if you want, you can fork it to do any modifications you want.
 
 # Variables
-- [robigo.py](.vscode/robigo.py)
+- [robigo.py](robigo.py)
 
     <table>
         <tr>
