@@ -30,7 +30,7 @@ defaultDict = {
     'UI_3': 0x04, # Key 3
     'UI_4': 0x05, # Key 4
     'Pause': 0x19, # Key P
-    'space': 0x39, 
+    'UI_Select' : 0x39, # Key Space
     'enter': 0x1C, # Key RETURN(ENTER)
     'esc': 0x01 # Key ESC    
 }
