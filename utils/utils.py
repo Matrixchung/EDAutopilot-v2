@@ -181,7 +181,7 @@ def watchdog(terminate,debug): # terminate: allow watchdog to force terminate th
 # Window Utils
 navPointsPrevX = -1.0
 navPointsPrevY = -1.0
-def getNavPointsByCompass(compassImg,compassShowImg,compassHsv,isShowImg):
+def getNavPointsByCompass(compassImg,compassShowImg,compassHsv,isShowImg=False):
 # def getNavPointsByCompass(compassImg,compassHsv): # NO IMAGE RETURN NEEDED
     global navPointsPrevX,navPointsPrevY
     try:
@@ -242,10 +242,6 @@ def getNavPointsByCompass(compassImg,compassShowImg,compassHsv,isShowImg):
         traceback.print_exc()
         targetX=targetY=navCenter=-1.0
         navShowImg = None
-    if isShowImg:
-        if compassShowImg is not None : cv2.imshow('compass',compassShowImg)
-        if navShowImg is not None: cv2.imshow('navpoints',navShowImg)
-        cv2.waitKey(1)
     return (targetX,targetY),navCenter
     # return (targetX,targetY),navCenter # NO IMAGE RETURN NEEDED
 

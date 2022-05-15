@@ -213,17 +213,22 @@ def keyTranslate(keyName):
         return 0x00
     return SCANCODE[keyName]
 
-def init_keybinds():
+def init_keybinds(logger=None):
     global keysDict, aliasDict, latestBindsPath
     list_of_bindings = [join(keyBindsPath, f) for f in listdir(keyBindsPath) if isfile(join(keyBindsPath, f)) and f.endswith('.binds')]
     if not list_of_bindings: 
         latestBindsPath = ''
-        print('No keybinds found')
+        if logger is not None:
+            logger.critical('No keybinds found, please check your game settings!')
+        else: print('No keybinds found')
         return
     else: latestBindsPath = max(list_of_bindings, key=getmtime)
     origin = parse(latestBindsPath)
     rootNode = origin.documentElement
-    if rootNode.hasAttribute('PresetName'): print('Parsing keybinds: '+rootNode.getAttribute('PresetName'))
+    if rootNode.hasAttribute('PresetName'): 
+        if logger is not None:
+            logger.info('Parsing keybinds: '+rootNode.getAttribute('PresetName'))
+        else: print('Parsing keybinds: '+rootNode.getAttribute('PresetName'))
     emptyKeys = []
     successKeys = 0
     for keyName in defaultDict:
@@ -252,7 +257,12 @@ def init_keybinds():
                     continue    
             emptyKeys.append(keyName)# no key is specific
     if len(emptyKeys)>0:
-        print('Error in setting keybind(s): '+str(emptyKeys))
-        print('You may have to bind the keybind(s) in game manually')
-    print('Successfully added '+str(successKeys)+' keybinds, '+str(len(emptyKeys))+' failed.')
+        if logger is not None:
+            logger.critical('Error in setting keybind(s): '+str(emptyKeys))
+            logger.critical('You may have to bind the keybind(s) in game manually')
+        else: 
+            print('Error in setting keybind(s): '+str(emptyKeys))
+            print('You may have to bind the keybind(s) in game manually')
+    if logger is not None: logger.info('Successfully added '+str(successKeys)+' keybinds, '+str(len(emptyKeys))+' failed.')
+    else: print('Successfully added '+str(successKeys)+' keybinds, '+str(len(emptyKeys))+' failed.')
     return defaultDict

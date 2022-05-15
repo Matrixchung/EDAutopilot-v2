@@ -4,5 +4,5 @@
 *.deprecated
 test.py
 test/*
-__pycache__/*
-utils/__pycache__/*
+*/__pycache__/*
+/__pycache__/*
