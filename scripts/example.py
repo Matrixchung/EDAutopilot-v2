@@ -5,7 +5,7 @@ from utils.utils import *
 from PySide2.QtWidgets import QGridLayout, QVBoxLayout, QLabel, QPushButton, QGroupBox # import widgets you want to add to 'Script' box here
 class example(ScriptBase): # class name must be same with filename
     description ='''
-    example.py: An script example for you to write your own EDAutopilot script
+    example.py: A script example for you to write your own EDAutopilot script
     '''
     def __init__(self,logger:Logger=None,layout:QGridLayout=None,session:ScriptSession=None): 
         super().__init__(logger,layout,session)

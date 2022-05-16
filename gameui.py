@@ -301,8 +301,8 @@ class Main(QObject):
         self.journal = data.journal
         self.stateList = data.stateList
         self.guiFocus = data.guiFocus
-        self.shipLoc = self.journal['location']
-        self.shipTarget = self.journal['target']
+        if self.journal['location'] is not None: self.shipLoc = self.journal['location']
+        if self.journal['target'] is not None: self.shipTarget = self.journal['target']
 
         # display
         self.locationLabel.setText(('Loc: '+self.shipLoc).ljust(49))
