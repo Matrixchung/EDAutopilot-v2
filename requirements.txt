@@ -8,3 +8,6 @@ transitions==0.8.10
 opencv_python==4.5.5.62
 opencv-contrib-python==4.5.5.62
 opencv-python-headless==4.5.5.62
+pyqt5>=5.15
+pyside2>=5.15.2.1
+shiboken2>=5.15.2.1
