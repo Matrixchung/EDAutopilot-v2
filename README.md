@@ -31,7 +31,7 @@ Showcase: [here](https://streamable.com/p8mhoz) (*accelerated, no manual key inp
  - Currently I'm annoyed at money-grabbing stuffs (for my Fleet Carrier), so currently this project will only play its role as a simple sightseeing mission bot. Given that I have already created a gameSession API, we can expect more features like multi-hop jumping assist for long distance travel etc. in the future. And if you want, you can fork it to do any modifications you want.
 
 # Variables
-- [robigo.py](robigo.py)
+- [robigo.py](scripts/robigo.py)
 
     <table>
         <tr>
