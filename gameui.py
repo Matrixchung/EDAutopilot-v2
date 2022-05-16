@@ -2,7 +2,6 @@ from PySide2.QtGui import QImage, QPixmap, QTextCharFormat, QColor, QBrush, QCur
 from PySide2.QtWidgets import QApplication, QFileDialog, QPlainTextEdit, QLabel, QMenu, QAction, QGridLayout
 from PySide2.QtUiTools import QUiLoader
 from PySide2.QtCore import QThread, QObject, Signal
-from requests import session
 from utils.utils import *
 import sys
 import webbrowser

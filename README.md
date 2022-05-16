@@ -2,7 +2,7 @@
  - An autopilot bot for Elite:Dangerous based on OpenCV+Python.
  - Notice: this program **only** works in *Elite Dangerous: Horizons* currently
  - *Windows 11* Compatible
- - Structure:
+ - Structure (v2):
  ![struct](/img/struct.jpg)
 
 # What can it do?
@@ -123,6 +123,8 @@ Showcase: [here](https://streamable.com/p8mhoz) (*accelerated, no manual key inp
 		</DesaturateTest>
 	</GUIColour>
  ```
-
+# Screenshots
+![screenshot-1](/img/screenshot1.jpg)
+![screenshot-2](/img/screenshot2.jpg)
 # Credits
  - **@skai2** https://github.com/skai2/EDAutopilot for initial idea and DirectInput system
