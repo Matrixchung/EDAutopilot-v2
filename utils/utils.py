@@ -19,7 +19,8 @@ from utils.status import *
 
 ## Constants
 IMAGE_QUEUE_SIZE = 8 # targetX,targetY,navCenter,isAligned,isFocused,elapsedTime,windowLeftX,windowTopY
-ALIGN_TRIMM_DELAY = 0.030
+ALIGN_TRIMM_DELAY = 0.080
+ALIGN_KEY_DELAY = 0.180
 KEY_DEFAULT_DELAY = 0.120
 KEY_REPEAT_DELAY = 0.200
 MOUSE_CLICK_DELAY = 0.200
@@ -239,7 +240,6 @@ def getNavPointsByCompass(compassImg,compassShowImg,compassHsv,isShowImg=False):
             navShowImg = None
     except Exception as e: 
         print('Error in getNavPointsByCompass()')
-        traceback.print_exc()
         targetX=targetY=navCenter=-1.0
         navShowImg = None
     return (targetX,targetY),navCenter

@@ -1,7 +1,8 @@
 from PySide2.QtGui import QImage, QPixmap, QTextCharFormat, QColor, QBrush, QCursor
-from PySide2.QtWidgets import QApplication, QFileDialog, QPlainTextEdit, QLabel, QMenu, QAction
+from PySide2.QtWidgets import QApplication, QFileDialog, QPlainTextEdit, QLabel, QMenu, QAction, QGridLayout
 from PySide2.QtUiTools import QUiLoader
 from PySide2.QtCore import QThread, QObject, Signal
+from requests import session
 from utils.utils import *
 import sys
 import webbrowser
@@ -9,9 +10,10 @@ import importlib
 # 3 subthreads + 1 main thread (UI): 
 # I/O Thread: handle journal and status reading + watchdog
 # Image Thread: handle imageProcessing
-# Scripts Thread: handle scripts (dynamic import)
+# Scripts Thread: handle scripts and key sending (dynamic import)
 
 IO_TIMEOUT = 1.0 # I/O thread timeout(preventing heavy io)
+IMAGE_MINIMUM_TIMEOUT = 0.2 # sleep for # in each cycle to prevent heavy CPU load
 IMAGE_WAITING_TIMEOUT = 5 # Re-detecing timeout if ImageThread found no process instance
 
 rootPath = os.path.split(os.path.realpath(__file__))[0]
@@ -24,8 +26,8 @@ class Logger:
     def writeToFile(self,message:str):
         pass
         #print(message)
-    def _appendColorText(self,message:str,color='black'):
-        self.writeToFile(message)
+    def _appendColorText(self,message:str,color='black',toFile=True):
+        if toFile: self.writeToFile(message)
         format = QTextCharFormat()
         format.setForeground(QBrush(QColor(color)))
         self.logText.setCurrentCharFormat(format)
@@ -33,6 +35,9 @@ class Logger:
         format.setForeground(QBrush(QColor('black'))) # restore to default color
         self.logText.setCurrentCharFormat(format)
         del(format)
+    def tip(self,message:str):
+        msg = ('['+datetime.now().strftime('%H:%M:%S')+'][TIP] '+str(message))
+        self._appendColorText(msg,color='blue',toFile=False) # don't save tips
     def info(self,message:str,color='black'):
         msg = ('['+datetime.now().strftime('%H:%M:%S')+'][INFO] '+str(message))
         self._appendColorText(msg,color=color)
@@ -73,19 +78,22 @@ class IOThread(QThread):
 
 ## SCRIPTS THREAD START
 # Dynamic import scripts file
-# Input: Main->Session (status,journal,etc)
-# Output: Session->Main ()
+# Input: Main -> ScriptThread (status,journal,navpoints,etc)
+# Output: ScriptThread -> Main ()
 class ScriptInputMsg:
-    def __init__(self,isAligned=False,isFocused=False,stateList=[],journal=[],guiFocus=[]):
+    def __init__(self,isAligned=False,isFocused=False,stateList=[],journal=[],guiFocus=[],targetX=0,targetY=0,navCenter=0):
         self.isAligned = isAligned
         self.isFocused = isFocused
         self.stateList = stateList
         self.journal = journal
         self.guiFocus = guiFocus
-class ScriptSession(QObject):
-    _inSignal = Signal(object)
-    _outSignal = Signal(object)
-    isDebug = False
+        self.targetX = targetX
+        self.targetY = targetY
+        self.navCenter = navCenter
+class ScriptSession: # will be initialized in ScriptThread
+    # _inSignal = Signal(object)
+    # _outSignal = Signal(object)
+    targetX = targetY = navCenter = 0
     isAligned = isFocused = False
     stateList = []
     journal = []
@@ -94,25 +102,54 @@ class ScriptSession(QObject):
     status = ''
     shipLoc = ''
     shipTarget = ''
-    def __init__(self,logger:Logger=None):
-        pass
-    def update(self):
-        pass
-    def sendKey(self):
-        pass
-    def sendDelay(self):
-        pass
-    def sleep(self):
-        pass
-    def align(self):
-        pass
-    def sunAvoiding(self):
-        pass
+    def __init__(self,logger:Logger=None,keysDict:dict=None):
+        self.logger = logger
+        self.keysDict = keysDict
+    def _update(self,data:ScriptInputMsg):
+        self.isAligned = data.isAligned
+        self.isFocused = data.isFocused
+        self.stateList = data.stateList
+        self.journal = data.journal
+        self.guiFocus = data.guiFocus
+        self.targetX = data.targetX
+        self.targetY = data.targetY
+        self.navCenter = data.navCenter
+        self.status = self.journal['status']
+        self.shipLoc = self.journal['location']
+        self.shipTarget = self.journal['target']
+        self.missionList = self.journal['missions']
+    def sendKey(self, key, hold=None, repeat=1, repeat_delay=None, state=None):
+        sendHexKey(self.keysDict,key,hold=hold,repeat=repeat,repeat_delay=repeat_delay,state=state)
+    def sleep(self,delay):
+        time.sleep(delay)
+    def align(self) -> bool : # return False if already aligned
+        if self.targetX == -1 or self.targetY == -1 : return True # 
+        if self.isAligned == 1 or self.isFocused == 0: return False
+        offsetX = abs(self.targetX-self.navCenter)
+        offsetY = abs(self.targetY-self.navCenter)
+        # if offsetX<0.2 and offsetY<0.2: return False # magic number: minimum range for SimpleBlobDetector
+        trimX = trimY = 0.0
+        if offsetX<3: trimX = ALIGN_TRIMM_DELAY
+        if offsetY<3: trimY = ALIGN_TRIMM_DELAY
+        if offsetY>ALIGN_DEAD_ZONE:
+            if self.targetY<self.navCenter: self.sendKey('PitchUpButton',hold=ALIGN_KEY_DELAY-trimY)
+            else : self.sendKey('PitchDownButton',hold=ALIGN_KEY_DELAY-trimY)
+        elif offsetX>ALIGN_DEAD_ZONE: # align Y-Axis first
+            if self.targetX>self.navCenter: self.sendKey('YawRightButton',hold=ALIGN_KEY_DELAY-trimX)
+            else : self.sendKey('YawLeftButton',hold=ALIGN_KEY_DELAY-trimX)
+        return True
+    def sunAvoiding(self,fwdDelay=18,turnDelay=12):
+        self.sendKey('SpeedZero')
+        self.sleep(2)
+        self.sendKey('PitchUpButton',hold=turnDelay)
+        self.sendKey('Speed100')
+        self.sleep(fwdDelay)
+        self.sendKey('SpeedZero')
     
 class ScriptThread(QThread):
-    _inSignal = Signal(object)
-    _outSignal = Signal(object)
-    def __init__(self,moduleBase,logger=None,layout=None):
+    # _inSignal = Signal(object)
+    # _outSignal = Signal(object)
+    def __init__(self,moduleBase,logger:Logger=None,layout:QGridLayout=None,keysDict:dict=None):
         super().__init__()
         self.setTerminationEnabled(True)
         self.logger = logger
@@ -120,13 +157,17 @@ class ScriptThread(QThread):
         self._module = importlib.import_module('scripts.'+moduleBase) # load 'scripts.moduleBase' module
         self._class = getattr(self._module, moduleBase) # class name is the same with module name
         # initialize instance
-        self.instance = self._class(logger=self.logger,layout=self.layout) 
+        self.session = ScriptSession(logger=self.logger,keysDict=keysDict)
+        self.instance = self._class(logger=self.logger,layout=self.layout,session=self.session) 
+
+    def onReceiveData(self,data:ScriptInputMsg):
+        self.session._update(data)
+
     def run(self):
         try:
             self.instance.run()
         except Exception:
             self.logger.critical(traceback.format_exc())
-    
 
 ## SCRIPTS THREAD END
 
@@ -158,7 +199,7 @@ class ImageThread(QThread):
                     gameCoord,windowHwnd = getWindowRectByName(globalWindowName)
                 except Exception as e: 
                     if 'Invalid window handle' in str(e):
-                        self.logger.critical('ImageThread: No process found, retrying in '+str(IMAGE_WAITING_TIMEOUT)+' sec')
+                        self.logger.critical('ImageThread: No game process found, retrying in '+str(IMAGE_WAITING_TIMEOUT)+' sec')
                         time.sleep(IMAGE_WAITING_TIMEOUT)
                         continue
                     else: self.logger.critical(traceback.format_exc())
@@ -193,10 +234,11 @@ class ImageThread(QThread):
                 self._imageSignal.emit(message)
             except:
                 self.logger.critical(traceback.format_exc())
+            time.sleep(IMAGE_MINIMUM_TIMEOUT)
 ## IMAGE THREAD END
 
 
-class Main:
+class Main(QObject):
     scriptPath = ''
     scriptName = ''
     usingWatchdog = False
@@ -211,8 +253,10 @@ class Main:
     shipLoc = ''
     shipTarget = ''
 
-    def __init__(self):
+    _outputSignalToScript = Signal(ScriptInputMsg)
 
+    def __init__(self):
+        super().__init__()
         self.mainUI = QUiLoader().load(mainWindowPath)
         self.subUI = QUiLoader().load(subWindowPath)
         self.mainUI.setWindowTitle('EDAutopilot v2')
@@ -239,15 +283,15 @@ class Main:
         self.mainUI.actionExit.triggered.connect(self.onExit)
         QApplication.instance().aboutToQuit.connect(self.onExit)
 
-        
-
         self.mainUI.actionScriptName.setText('(Empty)')
-        self.locationLabel = QLabel('{:<60}'.format('Location: None'))
-        self.targetLabel = QLabel('{:<60}'.format('Target: None'))
-        self.fpsLabel = QLabel('{:<15}'.format('FPS: 0'))
-        self.scriptStatusLabel = QLabel('{:<30}'.format('Idle'))
+        self.locationLabel = QLabel('Loc: None'.ljust(49))
+        self.targetLabel = QLabel('Target: None'.ljust(49))
+        self.alignedLabel = QLabel('Align: 0'.ljust(9))
+        self.fpsLabel = QLabel('FPS: 0'.ljust(8))
+        self.scriptStatusLabel = QLabel('Idle'.ljust(20))
         self.mainUI.statusBar().addWidget(self.locationLabel)
         self.mainUI.statusBar().addWidget(self.targetLabel)
+        self.mainUI.statusBar().addWidget(self.alignedLabel)
         self.mainUI.statusBar().addWidget(self.fpsLabel)
         self.mainUI.statusBar().addWidget(self.scriptStatusLabel)
 
@@ -262,13 +306,13 @@ class Main:
         self.shipTarget = self.journal['target']
 
         # display
-        self.locationLabel.setText('{:<60}'.format('Location: '+self.shipLoc))
-        self.targetLabel.setText('{:<60}'.format('Target: '+self.shipTarget))
+        self.locationLabel.setText(('Loc: '+self.shipLoc).ljust(49))
+        self.targetLabel.setText(('Target: '+self.shipTarget).ljust(49))
 
         if self.thread_script is not None: # check if the script thread alives
             if not self.thread_script.isRunning(): # terminated
                 self.stopScript()
-            else: self.scriptStatusLabel.setText('{:<20}'.format('Running'))
+            else: self.scriptStatusLabel.setText('Running'.ljust(20))
     
     def updateImage(self,data:ImageMsg):
         # unpack
@@ -283,7 +327,15 @@ class Main:
         self.windowTopY = data.windowTopY
 
         # display
-        self.fpsLabel.setText('{:<15}'.format('FPS: '+self.fps))
+        self.fpsLabel.setText(('FPS: '+str(self.fps)).ljust(8))
+        self.alignedLabel.setText(('Align: '+(str(1) if self.isAligned else str(0))).ljust(9))
+
+        # try to send data to ScriptThread
+        if self.thread_script is not None:
+            # pack & form a ScriptInputMsg
+            outputMsg = ScriptInputMsg(self.isAligned,self.isFocused,self.stateList,self.journal,self.guiFocus,self.targetX,self.targetY,self.navCenter)
+            # then emit it
+            self._outputSignalToScript.emit(outputMsg)
 
     def loadScript(self,filePath=None):
         if filePath is None : 
@@ -302,7 +354,8 @@ class Main:
         self.scriptName = self.scriptName[:-3] # remove '.py'
         self.logger.info('Loading script: '+self.scriptPath,color='green')
         try:
-            self.thread_script = ScriptThread(self.scriptName,logger=self.logger,layout=self.mainUI.scriptLayout)
+            self.thread_script = ScriptThread(self.scriptName,logger=self.logger,layout=self.mainUI.scriptLayout,keysDict=self.keysDict)
+            self._outputSignalToScript.connect(self.thread_script.onReceiveData)
             self.thread_script.start()
         except Exception:
             self.logger.critical(traceback.format_exc())
@@ -317,17 +370,17 @@ class Main:
         else:
             if self.thread_script.isRunning(): 
                 self.thread_script.terminate()
-                widgetCounts = self.mainUI.scriptLayout.count() # going to remove all created widgets
-                if widgetCounts>0:
-                    self.logger.info('Script exited, cleared '+str(widgetCounts)+' widget(s)')
-                    for i in range(widgetCounts):
-                        item = self.mainUI.scriptLayout.itemAt(i)
-                        if item.widget(): item.widget().deleteLater()
-                        else: self.mainUI.scriptLayout.removeItem(item)
             if not self.thread_script.isRunning(): # terminated
                 self._setScriptActionsState(True)
                 self.thread_script = None
                 self.mainUI.actionScriptName.setText('(Empty)')
+        widgetCounts = self.mainUI.scriptLayout.count() # going to remove all created widgets
+        if widgetCounts>0:
+            self.logger.info('Script exited, cleared '+str(widgetCounts)+' widget(s)')
+            for i in range(widgetCounts):
+                item = self.mainUI.scriptLayout.itemAt(i)
+                if item.widget(): item.widget().deleteLater()
+                else: self.mainUI.scriptLayout.removeItem(item)
     
     def _setScriptActionsState(self,state:bool): # True means 'Load' is active and 'Stop' can't be triggered
         self.mainUI.actionStopScript.setDisabled(state)
@@ -361,7 +414,9 @@ class Main:
         webbrowser.open('https://github.com/Matrixchung/EDAutopilot', new=1)
     
     def onExit(self): # release resources
+        if self.thread_script is not None: self.thread_script.terminate()
         self.thread_io.terminate()
+        self.thread_image.terminate()
         QApplication.instance().quit()
 
 if __name__ == '__main__':

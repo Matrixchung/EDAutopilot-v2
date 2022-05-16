@@ -1,12 +1,14 @@
 # An script example
 from gameui import Logger, ScriptSession 
+from scripts.ScriptBase import ScriptBase
 from utils.utils import *
 from PySide2.QtWidgets import QGridLayout, QVBoxLayout, QLabel, QPushButton, QGroupBox # import widgets you want to add to 'Script' box here
-import time
-class example: # class name must be same with filename
-    def __init__(self,logger:Logger=None,layout:QGridLayout=None,scriptSession:ScriptSession=None): 
-        self.logger = logger
-        self.layout = layout
+class example(ScriptBase): # class name must be same with filename
+    description ='''
+    example.py: An script example for you to write your own EDAutopilot script
+    '''
+    def __init__(self,logger:Logger=None,layout:QGridLayout=None,session:ScriptSession=None): 
+        super().__init__(logger,layout,session)
         # Initialize scripts and layout here
 
         ### Example groupbox_1
@@ -30,9 +32,15 @@ class example: # class name must be same with filename
         self.logger.info('example: __init__ is loaded')
 
     def run(self): # Program entrance, you can use infinite loop or anything here
-        self.logger.info('run() is invoked')
-        while True:
-            time.sleep(1)
+        session = self.session
+        logger = self.logger
+        align = False
+        while not keyboard.is_pressed('end'):
+            if keyboard.is_pressed('o'): 
+                align = True
+            if align: 
+                align = session.align()
+            session.sleep(0.01)
         
     def _onClickButton(self):
         self.logger.info('clicked')
