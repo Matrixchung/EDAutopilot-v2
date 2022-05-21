@@ -266,11 +266,9 @@ class robigo(ScriptBase):
                                         session.sendKey('UI_Down')
                                         session.sleep(1)
                                     session.sleep(2)
-                                    session.update()
                                     missionCount = len(session.missionList)
                                     if missionCount >= maxMissionCount : break # No more slot
                                 if missionCount >= maxMissionCount : break # break the outer loop
-                            session.update()
                             missionCount = len(session.missionList)
                             if missionCount >= maxMissionCount or missionCount != 0 : # got
                                 machine.set_state('mission-received')
