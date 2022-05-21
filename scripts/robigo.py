@@ -81,7 +81,7 @@ def setDest(session,dest):
     session.sleep(1)
     mouseClick(destLoc)
     session.sleep(3)
-    session.sendKey('space')
+    session.sendKey('UI_Select')
     session.sleep(3)
     session.sendKey('UI_OpenGalaxyMap')
     return True
@@ -230,7 +230,7 @@ class robigo(ScriptBase):
                                         # mouseClick(getAbsoluteCoordByOffset(windowCoord,offset_button_pick_cabin))
                                         session.sendKey('UI_Right')
                                         session.sleep(1)
-                                        session.sendKey('space')
+                                        session.sendKey('UI_Select')
                                         session.sleep(1)
                                         session.sleep(1)
                                         pyautogui.moveTo(getAbsoluteCoordByOffset(windowCoord,offset_pick_cabin_bottom))
@@ -246,13 +246,13 @@ class robigo(ScriptBase):
                                             acceptButton_unavailHL = isImageInGame(button_accept_unavailHL,confidence=0.7)
                                             if backButton == False and (acceptButton or acceptButton_unavail or acceptButton_unavailHL): # ensure we're not targetting the back button and still in the picking board
                                                 if t == 0: # first enumerate
-                                                    session.sendKey('space')
+                                                    session.sendKey('UI_Select')
                                                     session.sleep(1)
                                                     session.sleep(1)
                                                 else:
                                                     session.sendKey('UI_Up')
                                                     session.sleep(1)
-                                                    session.sendKey('space')
+                                                    session.sendKey('UI_Select')
                                                     session.sleep(1)
                                                     session.sleep(1)
                                             else:
@@ -300,7 +300,7 @@ class robigo(ScriptBase):
                                 session.sleep(2)
                                 session.sendKey('UI_Down',repeat=3) # choose AUTO LAUNCH
                                 session.sleep(1)
-                                session.sendKey('space') 
+                                session.sendKey('UI_Select') 
                                 session.sendKey('SpeedZero')
                                 session.sleep(1)
                                 machine.set_state('thrust-up')
@@ -414,10 +414,10 @@ class robigo(ScriptBase):
                                 if (not res2 and not res3) or res1:
                                     session.sendKey('UI_Up')
                                     session.sleep(2.5)
-                            session.sendKey('space')
+                            session.sendKey('UI_Select')
                             session.sleep(1)
                             session.sendKey('UI_Right')
-                            session.sendKey('space')
+                            session.sendKey('UI_Select')
                             session.sleep(1)
                             session.sendKey('esc') # back to main panel
                             session.sleep(5)
@@ -562,10 +562,10 @@ class robigo(ScriptBase):
                                 if (not res2 and not res4) or (res1 or res3 or res5): 
                                     session.sendKey('UI_Up')
                                     session.sleep(2.5)
-                            session.sendKey('space')
+                            session.sendKey('UI_Select')
                             session.sleep(1)
                             session.sendKey('UI_Right')
-                            session.sendKey('space')
+                            session.sendKey('UI_Select')
                             session.sleep(1)
                             session.sendKey('esc') # back to main panel
                             session.sleep(3)
@@ -627,7 +627,7 @@ class robigo(ScriptBase):
                         session.sleep(1)
                         result1=isImageInGame(button_requestDockHL,confidence=0.6)
                         if result1:
-                            session.sendKey('space')
+                            session.sendKey('UI_Select')
                             session.sleep(5)
                             session.sendKey('esc') # back to main panel and let's check if the docking computer is active
                             session.sleep(3)
@@ -652,26 +652,26 @@ class robigo(ScriptBase):
                             session.sleep(2)
                             session.sendKey('UI_Up',repeat=3)
                             # if isImageInGame(button_fuel,confidence=0.6): # Fuel Button
-                                #session.sendKey('space')
+                                #session.sendKey('UI_Select')
                                 #session.sleep(3)
-                            session.sendKey('space')  # force refuel
+                            session.sendKey('UI_Select')  # force refuel
                             session.sleep(4)
-                            session.sendKey('space')  # force refuel
+                            session.sendKey('UI_Select')  # force refuel
                             session.sleep(1)
                             # Repair
                             session.sendKey('UI_Right')
                             session.sleep(1)
-                            session.sendKey('space')  # force repair
+                            session.sendKey('UI_Select')  # force repair
                             session.sleep(1)
                             # Restock
                             session.sendKey('UI_Right')
                             session.sleep(1)
-                            session.sendKey('space')  # force stock
+                            session.sendKey('UI_Select')  # force stock
                             session.sleep(1)
 
                             session.sendKey('UI_Down')
                             session.sleep(2)
-                            session.sendKey('space')  # auto fuel and go to Station Services
+                            session.sendKey('UI_Select')  # auto fuel and go to Station Services
                             session.sleep(5)
                         if session.guiFocus == 'StationServices':
                             session.sleep(2)
@@ -707,7 +707,7 @@ class robigo(ScriptBase):
                                     while not backButton:  backButton = isImageInGame(button_back_smallHL,confidence=0.6)
                                     session.sleep(1)
                                     mouseClick(getAbsoluteCoordByOffset(windowCoord,offset_button_reward_back))
-                                    # session.sendKey('space')
+                                    # session.sendKey('UI_Select')
                                     if missionCountOverride >= 1: missionCountOverride -= 1
 
                                 missionCount = len(session.missionList)

@@ -30,7 +30,7 @@ defaultDict = {
     'UI_3': 0x04, # Key 3
     'UI_4': 0x05, # Key 4
     'Pause': 0x19, # Key P
-    'space': 0x39, 
+    'UI_Select': 0x39, # Key Space
     'enter': 0x1C, # Key RETURN(ENTER)
     'esc': 0x01 # Key ESC    
 }
@@ -205,11 +205,12 @@ SCANCODE = {
 keyBindsPath = environ['LOCALAPPDATA']+"\Frontier Developments\Elite Dangerous\Options\Bindings"
 latestBindsPath = ""
 
-def keyTranslate(keyName):
+def keyTranslate(keyName,logger=None):
     if keyName in convert_to_direct_keys: keyName = convert_to_direct_keys[keyName]
     keyName = keyName.upper()
     if keyName not in SCANCODE: 
-        print(keyName+" is not in SCANCODE list!!")
+        if logger is not None: logger.critical(keyName+" is not in SCANCODE list!!")
+        else: print(keyName+" is not in SCANCODE list!!")
         return 0x00
     return SCANCODE[keyName]
 
@@ -239,7 +240,7 @@ def init_keybinds(logger=None):
             primary = keybind.getElementsByTagName('Primary')[0]
             primaryDevice = primary.getAttribute('Device')
             if primaryDevice == 'Keyboard':
-                key = keyTranslate(primary.getAttribute('Key'))
+                key = keyTranslate(primary.getAttribute('Key'),logger=logger)
                 if key != 0x0:
                     defaultDict[keyName] = key
                     successKeys += 1
@@ -249,7 +250,7 @@ def init_keybinds(logger=None):
             second = keybind.getElementsByTagName('Secondary')[0]
             secondDevice = second.getAttribute('Device')
             if secondDevice == 'Keyboard':
-                key = keyTranslate(second.getAttribute('Key'))
+                key = keyTranslate(second.getAttribute('Key'),logger=logger)
                 if key != 0x0:
                     defaultDict[keyName] = key
                     successKeys += 1
