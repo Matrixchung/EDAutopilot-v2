@@ -80,7 +80,7 @@ class IOThread(QThread):
 # Input: Main -> ScriptThread (status,journal,navpoints,etc)
 # Output: ScriptThread -> Main ()
 class ScriptInputMsg:
-    def __init__(self,isAligned=False,isFocused=False,stateList=[],journal=[],guiFocus=[],targetX=0,targetY=0,navCenter=0):
+    def __init__(self,isAligned=False,isFocused=False,stateList=[],journal=[],guiFocus=[],targetX=0,targetY=0,navCenter=0,windowLeftX=0,windowTopY=0):
         self.isAligned = isAligned
         self.isFocused = isFocused
         self.stateList = stateList
@@ -89,6 +89,8 @@ class ScriptInputMsg:
         self.targetX = targetX
         self.targetY = targetY
         self.navCenter = navCenter
+        self.windowLeftX = windowLeftX
+        self.windowTopY = windowTopY
 class ScriptSession: # will be initialized in ScriptThread
     # _inSignal = Signal(object)
     # _outSignal = Signal(object)
@@ -101,6 +103,7 @@ class ScriptSession: # will be initialized in ScriptThread
     status = ''
     shipLoc = ''
     shipTarget = ''
+    windowCoord = (0,0)
     def __init__(self,logger:Logger=None,keysDict:dict=None):
         self.logger = logger
         self.keysDict = keysDict
@@ -113,6 +116,7 @@ class ScriptSession: # will be initialized in ScriptThread
         self.targetX = data.targetX
         self.targetY = data.targetY
         self.navCenter = data.navCenter
+        self.windowCoord = (data.windowLeftX,data.windowTopY)
         self.status = self.journal['status']
         self.shipLoc = self.journal['location']
         self.shipTarget = self.journal['target']
@@ -332,7 +336,7 @@ class Main(QObject):
         # try to send data to ScriptThread
         if self.thread_script is not None:
             # pack & form a ScriptInputMsg
-            outputMsg = ScriptInputMsg(self.isAligned,self.isFocused,self.stateList,self.journal,self.guiFocus,self.targetX,self.targetY,self.navCenter)
+            outputMsg = ScriptInputMsg(self.isAligned,self.isFocused,self.stateList,self.journal,self.guiFocus,self.targetX,self.targetY,self.navCenter,self.windowLeftX,self.windowTopY)
             # then emit it
             self._outputSignalToScript.emit(outputMsg)
 
