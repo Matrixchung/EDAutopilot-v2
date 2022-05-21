@@ -107,78 +107,6 @@ def checkAlignWithTemplate(centerImg,circleImg):
         if abs(center[0]-cirCenter[0])<TEMPLATE_CIRCLE_DEAD_ZONE and abs(center[1]-cirCenter[1])<TEMPLATE_CIRCLE_DEAD_ZONE : result = True
     return result
 
-# Image Processing Thread
-def imageProcessing(coordShrName,isShowImg):
-    isAligned = 0
-    windowHwnd = win32gui.FindWindow(None,globalWindowName)
-    while True:
-        try: # already has windowHwnd
-            gameCoord = getWindowRectByHwnd(windowHwnd)
-        except: # gameHwnd changed
-            gameCoord,windowHwnd = getWindowRectByName(globalWindowName)
-        try:
-            startTime = time.time()
-            isFocused = isForegroundWindow(globalWindowName,windowHwnd)
-            img = pyautogui.screenshot(region=gameCoord)
-        
-            gameResolution = gameCoord[2],gameCoord[3]
-            # gameCenterActual = gameCoord[0]+gameCoord[2]/2,gameCoord[1]+gameCoord[3]/2 
-            gameCenterRel = gameCoord[2]/2,gameCoord[3]/2 
-
-            # outsideOffsetY = (gameCoord[3]/3)*2
-            cv2OriginImg = cv2.cvtColor(np.asarray(img),cv2.COLOR_RGB2BGR)
-            # cv2ShowImg = cv2OriginImg.copy() # ShowImg for Overlay
-            cv2GrayImg = cv2.cvtColor(cv2OriginImg,cv2.COLOR_BGR2GRAY)
-
-            centerImg = cv2GrayImg[int(gameCenterRel[1]-180):int(gameCenterRel[1]+180),int(gameCenterRel[0]-220):int(gameCenterRel[0]+220)]
-            compassImg = cv2GrayImg[int(gameResolution[1]/1.63):int(gameResolution[1]/1.06),int(gameResolution[0]/4.04):int(gameResolution[0]/2.02)] # Magic Number: size for compass img
-        
-            compassOriginImg = cv2OriginImg[int(gameResolution[1]/1.63):int(gameResolution[1]/1.06),int(gameResolution[0]/4.04):int(gameResolution[0]/2.02)]
-            compassHsv = cv2.cvtColor(compassOriginImg,cv2.COLOR_BGR2HSV)
-            compassShowImg = compassOriginImg.copy() # screen overlay
-
-            if checkAlignWithTemplate(centerImg,destCircleImg) is True: isAligned = 1
-            else: isAligned = 0
-
-            # (targetX,targetY),navCenter,compassShowImg,navShowImg = getNavPointsByCompass(compassImg,compassShowImg,compassHsv) 
-            (targetX,targetY),navCenter = getNavPointsByCompass(compassImg,compassShowImg,compassHsv,isShowImg)
-
-            shr_coord = shared_memory.SharedMemory(name=coordShrName)
-            coordArray = np.ndarray(shape=IMAGE_QUEUE_SIZE,dtype=np.float64,buffer=shr_coord.buf)
-            elapsedTime = time.time()-startTime
-            coordArray[:] = [targetX,targetY,navCenter,isAligned,isFocused,elapsedTime,gameCoord[0],gameCoord[1]]  
-        except:
-            pass
-            # traceback.print_exc()
-
-def createSharedCoordsBlock(name='ImgCoords'): # targetX,targetY,navCenter,isAligned,isFocused,elapsedTime,windowLeftX,windowTopY
-    a = np.zeros(IMAGE_QUEUE_SIZE)
-    shr = shared_memory.SharedMemory(create=True,name=name,size=a.nbytes)
-    npArray = np.ndarray(a.shape,dtype=np.float64,buffer=shr.buf)
-    npArray[:] = a[:]
-    return shr,npArray
-
-# Event Thread
-def eventsHandler(q,dict):
-    while True:
-        params=q.get()
-        if params == 'ENDQUEUE':
-            break
-        elif params[0] == 'KEY' and isForegroundWindow(globalWindowName):
-            sendHexKey(dict, params[1],params[2],params[3],params[4],params[5])
-        elif params[0] == 'DELAY':
-            time.sleep(params[1])
-
-# Watchdog 
-def watchdog(terminate,debug): # terminate: allow watchdog to force terminate the entire game process if in emergency
-    while True:
-        journal = setJournal()
-        isEmergency = journal['isUnderAttack'] or journal['isBeingScanned']
-        if isEmergency and terminate and isProcessExist(globalProcessName): # Force terminating...
-            if debug : print("Watchdog: killing process")
-            killProcess(globalProcessName)
-        time.sleep(WATCHDOG_SCANNING_DELAY)
-
 # Window Utils
 navPointsPrevX = -1.0
 navPointsPrevY = -1.0
@@ -425,4 +353,3 @@ def isProcessExist(processName):
     for pid in pids:
         if psutil.Process(pid).name() == processName: return True
     return False
-
