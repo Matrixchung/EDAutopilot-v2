@@ -227,9 +227,13 @@ def init_keybinds(logger=None):
     origin = parse(latestBindsPath)
     rootNode = origin.documentElement
     if rootNode.hasAttribute('PresetName'): 
+        presetName = rootNode.getAttribute('PresetName')
+        if rootNode.hasAttribute('MajorVersion'): 
+            presetName += "."+rootNode.getAttribute('MajorVersion')
+            if rootNode.hasAttribute('MinorVersion'): presetName += "."+rootNode.getAttribute('MinorVersion')
         if logger is not None:
-            logger.info('Parsing keybinds: '+rootNode.getAttribute('PresetName'))
-        else: print('Parsing keybinds: '+rootNode.getAttribute('PresetName'))
+            logger.info('Parsing keybinds: '+presetName)
+        else: print('Parsing keybinds: '+presetName)
     emptyKeys = []
     successKeys = 0
     for keyName in defaultDict:

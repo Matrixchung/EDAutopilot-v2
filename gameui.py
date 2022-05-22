@@ -18,15 +18,20 @@ IMAGE_WAITING_TIMEOUT = 5 # Re-detecing timeout if ImageThread found no process 
 rootPath = os.path.split(os.path.realpath(__file__))[0]
 mainWindowPath = rootPath+'/assets/main.ui'
 subWindowPath = rootPath+'/assets/sub.ui'
+logPath = rootPath+'/autopilot.log'
 
 class Logger:
-    def __init__(self,textOutput:QPlainTextEdit):
+    def __init__(self,textOutput:QPlainTextEdit,toFile=False):
         self.logText = textOutput
+        self.toFile = toFile
+        if self.toFile: open(logPath,"w") # clear previous logs
     def writeToFile(self,message:str):
-        pass
-        #print(message)
+        msgLoc = traceback.format_stack(limit=4)[0]
+        file,line=stackAnalyser(msgLoc)
+        with open(logPath, "a") as dest:
+            dest.write(file+":"+str(line)+" - "+message+"\n")
     def _appendColorText(self,message:str,color='black',toFile=True):
-        if toFile: self.writeToFile(message)
+        if self.toFile: self.writeToFile(message)
         format = QTextCharFormat()
         format.setForeground(QBrush(QColor(color)))
         self.logText.setCurrentCharFormat(format)
@@ -202,7 +207,7 @@ class ImageThread(QThread):
                     gameCoord,windowHwnd = getWindowRectByName(globalWindowName)
                 except Exception as e: 
                     if 'Invalid window handle' in str(e):
-                        self.logger.critical('ImageThread: No game process found, retrying in '+str(IMAGE_WAITING_TIMEOUT)+' sec')
+                        self.logger.critical('ImageThread: No game process found, retrying in '+str(IMAGE_WAITING_TIMEOUT)+' sec.')
                         time.sleep(IMAGE_WAITING_TIMEOUT)
                         continue
                     else: self.logger.critical(traceback.format_exc())
@@ -263,7 +268,7 @@ class Main(QObject):
         self.mainUI = QUiLoader().load(mainWindowPath)
         self.subUI = QUiLoader().load(subWindowPath)
         self.mainUI.setWindowTitle('EDAutopilot v2')
-        self.logger = Logger(self.mainUI.logText) # start logger
+        self.logger = Logger(self.mainUI.logText,toFile=True) # start logger
         self.keysDict = init_keybinds(self.logger)
         
         self.mainUI.actionScriptName.setDisabled(True)
@@ -420,6 +425,7 @@ class Main(QObject):
         if self.thread_script is not None: self.thread_script.terminate()
         self.thread_io.terminate()
         self.thread_image.terminate()
+        self.logger.info("Resource cleared, program will exit.")
         QApplication.instance().quit()
 
 if __name__ == '__main__':

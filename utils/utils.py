@@ -7,7 +7,7 @@ import win32gui
 import win32file
 import pathlib
 import cv2
-import logging
+import re
 import time
 import numpy as np
 import traceback
@@ -18,7 +18,6 @@ from utils.keybinds import *
 from utils.status import *
 
 ## Constants
-IMAGE_QUEUE_SIZE = 8 # targetX,targetY,navCenter,isAligned,isFocused,elapsedTime,windowLeftX,windowTopY
 ALIGN_TRIMM_DELAY = 0.080
 ALIGN_KEY_DELAY = 0.180
 KEY_DEFAULT_DELAY = 0.120
@@ -27,8 +26,6 @@ MOUSE_CLICK_DELAY = 0.200
 DELAY_BETWEEN_KEYS = 1.5
 ALIGN_DEAD_ZONE = 1.6
 TEMPLATE_CIRCLE_DEAD_ZONE = 52
-SLEEP_UPDATE_DELAY = 0.1
-WATCHDOG_SCANNING_DELAY = 1.0 # Time for watchdog scanning if we're in emergency situation
 
 globalWindowName = "Elite - Dangerous (CLIENT)"
 globalProcessName = "EliteDangerous64.exe"
@@ -93,11 +90,10 @@ def sendHexKey(keysDict, key, hold=None, repeat=1, repeat_delay=None, state=None
 
 def checkAlignWithTemplate(centerImg,circleImg): 
     result = False
-    ret,binary = cv2.threshold(centerImg,110,255,cv2.THRESH_BINARY)
-    del ret
+    _,binary = cv2.threshold(centerImg,110,255,cv2.THRESH_BINARY)
     # result = cv2.matchTemplate(binary, circleImg, cv2.TM_CCORR)
     result = cv2.matchTemplate(binary, circleImg, cv2.TM_CCOEFF)
-    min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
+    _, max_val, _, max_loc = cv2.minMaxLoc(result)
     th,tw = circleImg.shape[:2]
     if max_val > 10000000: # I dont know why
         tl = max_loc
@@ -353,3 +349,14 @@ def isProcessExist(processName):
     for pid in pids:
         if psutil.Process(pid).name() == processName: return True
     return False
+
+def stackAnalyser(stack:str):
+    """
+    Output file name and line from stacktrace
+    Input: traceback.format_stack()
+    Output: fileName,line
+    """
+    elements = stack.split(',')
+    fileName = os.path.basename(elements[0].replace('File','').replace('"','').strip())
+    line = re.findall(r"\d+",elements[1])[0]
+    return fileName,line
