@@ -68,7 +68,7 @@ def getSunPercent(outsideImage):
 def sendHexKey(keysDict, key, hold=None, repeat=1, repeat_delay=None, state=None):
     global KEY_MOD_DELAY, KEY_DEFAULT_DELAY, KEY_REPEAT_DELAY
     if key is None:
-        logging.warning('Send an empty key')
+        print('Send an empty key')
         return
     for i in range(repeat):
         if state is None or state == 1:
