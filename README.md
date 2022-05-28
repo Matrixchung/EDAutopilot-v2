@@ -19,8 +19,9 @@ Showcase: [here](https://streamable.com/p8mhoz) (*accelerated, no manual key inp
  ```
  1. Make sure you have applied the [Useful Settings](#useful-settings) (Best recommended, because I write this entire project in those settings)
  2. Run ```pip install -r .\requirements.txt``` to install all dependencies
- 3. Run the script robigo.py (For Robigo Sightseeing Mission, or you can write your own)
- ``` python ./robigo.py```
+ 3. Run the GUI entry 
+ ``` python ./gameui.py```
+ 4. Click ```Scripts-Load..``` and select ```robigo.py``` (For Robigo Sightseeing Mission)
  5. When you are at Robigo Mines, **enter the starport menu and go to Passenger Lounge**, then simply click the Home button, and you can just sit back
  6. You can terminate the running process anytime when you click the End button. (Sometimes it may not kick in when in a sleep loop)
  7. You can leave the process unsupervised, but you should keep the mouse cursor on the Client Screen and manually takeover when it comes to interdict you
