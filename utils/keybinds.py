@@ -93,6 +93,7 @@ SCANCODE = {
     'KEY_LBRACKET'        : 0x1A,
     'KEY_RBRACKET'        : 0x1B,
     'KEY_RETURN'          : 0x1C,    # Enter on main keyboard */
+    'KEY_ENTER'           : 0x1C,
     'KEY_LCONTROL'        : 0x1D,
     'KEY_A'               : 0x1E,
     'KEY_S'               : 0x1F,
