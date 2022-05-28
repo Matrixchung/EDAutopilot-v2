@@ -10,6 +10,10 @@ defaultDict = {
     'PitchDownButton': 0x37, # NUM *
     'RollLeftButton': 0x4E, # NUM +
     'RollRightButton': 0x9C, # NUM ENTER
+    'PipLeft': 0xCB, # LeftArrow
+    'PipRight': 0xCD, # RightArrow
+    'PipUp': 0xC8, # UpArrow
+    'PipDown': 0xD0, # DownArrow
     'EnableFSD': 0x24, # Key J
     'EngineBoost': 0x0F, # Key Tab
     'Speed100': 0x47, # NUM 7
@@ -49,7 +53,11 @@ aliasDict = { # in-program key alias: in-game name
     'UI_1': 'FocusLeftPanel',
     'UI_2': 'FocusCommsPanel',
     'UI_3': 'FocusRadarPanel',
-    'UI_4': 'FocusRightPanel'
+    'UI_4': 'FocusRightPanel',
+    'PipLeft': 'IncreaseSystemsPower',
+    'PipRight': 'IncreaseWeaponsPower',
+    'PipUp': 'IncreaseEnginesPower',
+    'PipDown': 'ResetPowerDistribution'
 } # some key names in ED are really confusing
 
 convert_to_direct_keys = {

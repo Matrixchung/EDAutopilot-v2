@@ -6,3 +6,5 @@ test.py
 test/*
 __pycache__/*
 */__pycache__/*
+autopilot.log
+config.ini
