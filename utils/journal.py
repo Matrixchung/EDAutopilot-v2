@@ -6,6 +6,7 @@ import traceback
 from datetime import datetime,timezone
 savedGamePath = environ['USERPROFILE'] + "\Saved Games\Frontier Developments\Elite Dangerous"
 journal = {
+    'version': '',
     'latestLogUpdateTime': 0.0,
     'updateInterval': 0.0,
     'rawJournalLog': '',
@@ -69,7 +70,9 @@ def parseLogs(logPath=None):
                         journal['rawJournalLog'] = logJson
                         # print(logEvent+' ') 
                         # print(logTime)
-                        if ((logEvent == 'ReceiveText' and 'AttackDutyStart' in logJson['Message']) or logEvent == 'Interdicted' or logEvent == 'UnderAttack' or (logEvent == 'Music' and (logJson['MusicTrack'] == 'Interdiction' or logJson['MusicTrack'] == 'Combat_Dogfight'))) and journal['updateInterval'] <= 30: # May be interdicted!
+                        if logEvent == 'LoadGame' and 'Horizons' in logJson:
+                            journal['version'] = 'Odyssey' if 'Odyssey' in logJson else 'Horizons'
+                        elif ((logEvent == 'ReceiveText' and 'AttackDutyStart' in logJson['Message']) or logEvent == 'Interdicted' or logEvent == 'UnderAttack' or (logEvent == 'Music' and (logJson['MusicTrack'] == 'Interdiction' or logJson['MusicTrack'] == 'Combat_Dogfight'))) and journal['updateInterval'] <= 30: # May be interdicted!
                             journal['isUnderAttack'] = True
                         elif logEvent == 'Scanned' and journal['updateInterval'] <= 30 : # logged within 30 seconds 
                             journal['isBeingScanned'] = True
