@@ -107,8 +107,7 @@ class ScriptSession: # will be initialized in ScriptThread
         2.5-2.5-1 (each 2.5 press once)
 
         """
-        sum = engine+system+weapon
-        if sum!=6 : return False # Illegal argument
+        if engine+system+weapon!=6 : return False # Illegal argument
         self.pipReset()
         pipDict = {"PipLeft": system, "PipUp": engine, "PipRight": weapon}
         c = Counter(pipDict.values())
