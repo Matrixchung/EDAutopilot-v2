@@ -7,6 +7,8 @@ from datetime import datetime,timezone
 savedGamePath = environ['USERPROFILE'] + "\Saved Games\Frontier Developments\Elite Dangerous"
 journal = {
     'latestLogUpdateTime': 0.0,
+    'updateInterval': 0.0,
+    'rawJournalLog': '',
     'missions': [],
     'navRoutes': [],
     'status': '',
@@ -63,12 +65,13 @@ def parseLogs(logPath=None):
                     if logTime>=journal['latestLogUpdateTime']: # should update
                         latestLogLine += 1
                         journal['latestLogUpdateTime']=logTime
+                        journal['updateInterval'] = time.time()-logTime
+                        journal['rawJournalLog'] = logJson
                         # print(logEvent+' ') 
                         # print(logTime)
-
-                        if ((logEvent == 'ReceiveText' and 'AttackDutyStart' in logJson['Message']) or logEvent == 'Interdicted' or logEvent == 'UnderAttack' or (logEvent == 'Music' and (logJson['MusicTrack'] == 'Interdiction' or logJson['MusicTrack'] == 'Combat_Dogfight'))) and time.time()-logTime <= 30: # May be interdicted!
+                        if ((logEvent == 'ReceiveText' and 'AttackDutyStart' in logJson['Message']) or logEvent == 'Interdicted' or logEvent == 'UnderAttack' or (logEvent == 'Music' and (logJson['MusicTrack'] == 'Interdiction' or logJson['MusicTrack'] == 'Combat_Dogfight'))) and journal['updateInterval'] <= 30: # May be interdicted!
                             journal['isUnderAttack'] = True
-                        elif logEvent == 'Scanned' and time.time()-logTime <= 30 : # logged within 30 seconds 
+                        elif logEvent == 'Scanned' and journal['updateInterval'] <= 30 : # logged within 30 seconds 
                             journal['isBeingScanned'] = True
                         elif logEvent == 'Resurrect' or logEvent == 'LoadGame' or logEvent == 'Shutdown': # Ship destroyed / Reload the game
                             journal['isUnderAttack'] = journal['isBeingScanned'] = False

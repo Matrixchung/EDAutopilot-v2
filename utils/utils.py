@@ -360,3 +360,6 @@ def stackAnalyser(stack:str):
     fileName = os.path.basename(elements[0].replace('File','').replace('"','').strip())
     line = re.findall(r"\d+",elements[1])[0]
     return fileName,line
+
+def getKeys(d:dict, value):
+    return [k for k,v in d.items() if v == value]
