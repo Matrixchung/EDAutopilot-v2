@@ -14,6 +14,7 @@ class Config:
             "log_to_file": "True"
         },
         "GUI": {
+            "load_default_on_startup": "False",
             "default_script": ""      # Default script path, the program will try to open it 
         },
         "Image": {
@@ -48,6 +49,7 @@ class Config:
         if key in self.config:
             if value in self.config[key]: 
                 data:str = self.config[key][value] # here comes string data
+                if data == '': return None
                 if data.isdigit(): return int(data) # all digit
                 if isFloat(data): return float(data) # float
                 if data.lower() == 'true': return True
@@ -65,7 +67,7 @@ class Config:
                     return data # string list
                 return data
         return None
-    def set(self,key,value,data,save=True) -> None :
+    def set(self,key:str,value:str,data,save=True) -> None :
         self.config[key][value] = data
         if save: self.save()
     def save(self) -> None: 

@@ -264,6 +264,10 @@ class Main(QObject):
 
         self._setScriptActionsState(True)
 
+        if self.config.get('GUI','load_default_on_startup'):
+            defaultPath = self.config.get('GUI','default_script')
+            if defaultPath is not None: self.loadScript(path=defaultPath)
+
     def updateStatus(self,data:IOMsg):
         # unpack & update
         self.journal = data.journal
@@ -304,18 +308,20 @@ class Main(QObject):
             # then emit it
             self._outputSignalToScript.emit(outputMsg)
 
-    def loadScript(self,filePath=None):
-        if filePath is None : 
+    def loadScript(self,path=None):
+        if path is None: 
             try:
-                filePath = QFileDialog.getOpenFileName(self.mainUI,'Choose script',os.path.join(os.getcwd(),'scripts'), "Python file (*.py)")
+                filePath = QFileDialog.getOpenFileName(self.mainUI,'Choose script',os.path.join(os.getcwd(),'scripts'), "Python file (*.py)")[0]
             except Exception:
                 self.logger.critical(traceback.format_exc())
             finally: 
-                if filePath is None or filePath[0] == '': 
+                if filePath is None or filePath == '': 
                     self.logger.critical('Loaded an empty file')
                     self.stopScript()
-                    return 
-        self.scriptPath = filePath[0]
+                    return
+                else: self.config.set('GUI','default_script',filePath)
+        else: filePath = path
+        self.scriptPath = filePath
         _,self.scriptName = os.path.split(self.scriptPath)
         self.mainUI.actionScriptName.setText(self.scriptName)
         self.scriptName = self.scriptName[:-3] # remove '.py'
