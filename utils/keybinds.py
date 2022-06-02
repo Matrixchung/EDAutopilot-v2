@@ -1,6 +1,9 @@
 from os import environ, listdir
 from os.path import join, isfile, getmtime
+import time
+import traceback
 from xml.dom.minidom import parse
+from utils.directinputs import PressKey,ReleaseKey
 # Keys need to be parsed are started from capital letter
 # Here are default keys (don't have to change them)
 defaultDict = {
@@ -28,6 +31,10 @@ defaultDict = {
     'UI_Down': 0x1F, # Key S
     'UI_Left': 0x1E, # Key A
     'UI_Right': 0x20, # Key D
+    'UI_Up_Alt': 0xC8, # (Alternative UI Buttons for GalaxyMap)UpArrow
+    'UI_Down_Alt': 0xD0, # DownArrow
+    'UI_Left_Alt': 0xCB, # LeftArrow
+    'UI_Right_Alt': 0xCD, # RightArrow
     'UI_Back': 0x0E, # Backspace
     'UI_1': 0x02, # Key 1
     'UI_2': 0x03, # Key 2
@@ -54,6 +61,10 @@ aliasDict = { # in-program key alias: in-game name
     'UI_2': 'FocusCommsPanel',
     'UI_3': 'FocusRadarPanel',
     'UI_4': 'FocusRightPanel',
+    'UI_Up_Alt': 'UI_Up',
+    'UI_Left_Alt': 'UI_Left',
+    'UI_Right_Alt': 'UI_Right',
+    'UI_Down_Alt': 'UI_Down',
     'PipLeft': 'IncreaseSystemsPower',
     'PipRight': 'IncreaseWeaponsPower',
     'PipUp': 'IncreaseEnginesPower',
@@ -252,7 +263,7 @@ def init_keybinds(logger=None):
             else: keybind = rootNode.getElementsByTagName(keyName)[0]
             primary = keybind.getElementsByTagName('Primary')[0]
             primaryDevice = primary.getAttribute('Device')
-            if primaryDevice == 'Keyboard':
+            if primaryDevice == 'Keyboard' and not keyName.endswith('_Alt'):
                 key = keyTranslate(primary.getAttribute('Key'),logger=logger)
                 if key != 0x0:
                     defaultDict[keyName] = key
@@ -280,3 +291,15 @@ def init_keybinds(logger=None):
     if logger is not None: logger.info(f'Successfully added {successKeys} keybinds, {len(emptyKeys)} failed.')
     else: print(f'Successfully added {successKeys} keybinds, {len(emptyKeys)} failed.')
     return defaultDict
+
+def typewrite(text:str) -> bool:
+    try:
+        for word in text:
+            if word == ' ': hexCodeEntry = 'KEY_SPACE'
+            elif word == '-': hexCodeEntry = 'KEY_MINUS'
+            else: hexCodeEntry = f'KEY_{word.upper()}'
+            PressKey(SCANCODE[hexCodeEntry])
+            time.sleep(0.18)
+            ReleaseKey(SCANCODE[hexCodeEntry])
+    except:
+        traceback.print_exc()

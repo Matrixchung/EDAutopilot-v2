@@ -225,6 +225,7 @@ class Main(QObject):
     windowLeftX = windowTopY = 0
     stateList = []
     journal = Journal()
+    guiFocus = 'NoFocus'
     shipLoc = ''
     shipTarget = ''
 

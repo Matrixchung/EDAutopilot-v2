@@ -1,7 +1,9 @@
 import time
+from PySide2.QtCore import QThread
 from dataclasses import dataclass
 from collections import Counter
 from utils.utils import sendHexKey,getKeys,Journal,ALIGN_DEAD_ZONE,ALIGN_KEY_DELAY,ALIGN_TRIMM_DELAY
+from utils.keybinds import typewrite
 @dataclass
 class ScriptInputMsg:
     isAligned: bool
@@ -14,9 +16,13 @@ class ScriptInputMsg:
     navCenter: int
     windowLeftX: int
     windowTopY: int
+class routeWorker(QThread):
+    def __init__(self) -> None:
+        super().__init__()
 class ScriptSession: # will be initialized in ScriptThread
     # _inSignal = Signal(object)
     # _outSignal = Signal(object)
+    version = ''
     targetX = targetY = navCenter = 0
     isAligned = isFocused = False
     stateList = []
@@ -43,6 +49,7 @@ class ScriptSession: # will be initialized in ScriptThread
         self.status = self.journal.status
         self.shipLoc = self.journal.nav.location
         self.shipTarget = self.journal.nav.target
+        self.version = self.journal.log.version
         self.missions = self.journal.missions
     
     def sendKey(self, key, hold=None, repeat=1, repeat_delay=None, state=None):
@@ -87,6 +94,50 @@ class ScriptSession: # will be initialized in ScriptThread
         pass
     def getRouteDetails(self) -> dict:
         pass
+    def setTargetSystem(self,target:str) -> bool:
+        if self.version == 'Odyssey': # Odyssey version
+            self.sendKey('UI_Back',repeat=3)
+            self.sleep(2)
+            self.sendKey('UI_OpenGalaxyMap')
+            self.sleep(3)
+            if self.guiFocus == 'GalaxyMap':
+                self.sendKey('UI_Up_Alt')
+                self.sleep(1)
+                self.sendKey('UI_Select')
+                typewrite(target)
+                self.sleep(2)
+                self.sendKey('UI_Down_Alt')
+                self.sleep(1)
+                self.sendKey('UI_Select')
+                self.sleep(6) # waiting to move to the target
+                self.sendKey('UI_Right_Alt')
+                self.sendKey('UI_Down_Alt',repeat=6)
+                self.sendKey('UI_Select')
+                self.sleep(3)
+                self.sendKey('UI_Back',repeat=2)
+                return True
+            else: return False
+    def clearRoute(self) -> bool:
+        if self.version == 'Odyssey': # Odyssey version
+            self.sendKey('UI_Back',repeat=3)
+            self.sleep(2)
+            self.sendKey('UI_OpenGalaxyMap')
+            self.sleep(3)
+            if self.guiFocus == 'GalaxyMap':
+                self.sendKey('UI_Left_Alt')
+                self.sleep(1)
+                self.sendKey('UI_Down_Alt',repeat=13) # to the bottom
+                self.sleep(1)
+                self.sendKey('UI_Up_Alt',repeat=2) # select route settings
+                self.sleep(1)
+                self.sendKey('UI_Select')
+                self.sleep(1)
+                self.sendKey('UI_Up_Alt',repeat=4) # to the top
+                self.sleep(1)
+                self.sendKey('UI_Down_Alt')
+                # WIP
+                return True
+            else: return False
     ## PIP Managements
     def pipReset(self):
         self.sendKey('PipDown')

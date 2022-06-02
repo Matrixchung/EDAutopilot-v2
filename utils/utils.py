@@ -11,9 +11,7 @@ import re
 import time
 import numpy as np
 import traceback
-from ctypes import windll
 from utils.journal import *
-from utils.directinputs import *
 from utils.keybinds import *
 from utils.status import *
 
