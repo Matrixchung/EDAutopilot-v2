@@ -11,7 +11,8 @@ class Config:
     defaultConfig = {
         "Main": {
             "debug": "False",
-            "log_to_file": "True"
+            "log_to_file": "True",
+            "override_previous_logs": "False"
         },
         "GUI": {
             "load_default_on_startup": "False",

@@ -7,4 +7,5 @@ test/*
 __pycache__/*
 */__pycache__/*
 autopilot.log
+autopilot-*.log
 config.ini

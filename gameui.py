@@ -24,7 +24,7 @@ IMAGE_WAITING_TIMEOUT = 5 # Re-detecing timeout if ImageThread found no process 
 rootPath = os.path.split(os.path.realpath(__file__))[0]
 mainWindowPath = rootPath+'/assets/main.ui'
 subWindowPath = rootPath+'/assets/sub.ui'
-logPath = rootPath+'/autopilot.log'
+defaultLogPrefix = 'autopilot'
 
 ## LOGGER THREAD START
 @dataclass
@@ -32,11 +32,18 @@ class LogMsg:
     text: str
     color: str
 class Logger:
-    def __init__(self,queue:Queue,logPath:str):
+    init_file = False # Logging before the config loaded
+    logPath = None
+    def __init__(self,queue:Queue,logPath:str=None,init:bool=False):
         self.queue = queue
         self.logPath = logPath
+        self.init_file = init
+    def setInitFile(self,logPath): 
+        self.init_file = True
+        self.logPath = logPath
+        open(self.logPath, "w")
     def _outputText(self,message:str,color='black',toFile=True):
-        if toFile:
+        if toFile and self.init_file and self.logPath is not None:
             msgStack = traceback.format_stack(limit=3)[0]
             file,line=stackAnalyser(msgStack)
             with open(self.logPath, "a") as dest:
@@ -60,14 +67,23 @@ class Logger:
         self._outputText(msg,color='red')
 class LogThread(QThread):
     _logSignal = Signal(LogMsg)
-    def __init__(self,logPath):
+    def __init__(self):
         super().__init__()
-        self.logPath = logPath
-        open(self.logPath,"w") # clear previous logs
         self.queue = Queue()
-        self.logger = Logger(self.queue,self.logPath)
+        self.logger = Logger(self.queue)
     def getLogger(self) -> Logger:
         return self.logger
+    def initFile(self,override:bool): 
+        logPath = '{}/{}.log'.format(rootPath,defaultLogPrefix)
+        if override and isfile(logPath):
+            logIndex = 0
+            for f in listdir(rootPath):
+                if isfile(join(rootPath, f)) and f.startswith(defaultLogPrefix):
+                    last = os.path.splitext(f)[0][-1]
+                    if last.isdigit(): logIndex = int(last)
+            logIndex += 1
+            logPath = '{}/{}-{}.log'.format(rootPath,defaultLogPrefix,logIndex)
+        self.logger.setInitFile(logPath)
     def run(self):
         while True:
             result = self.queue.get()
@@ -220,12 +236,13 @@ class Main(QObject):
         self.subUI = QUiLoader().load(subWindowPath)
         self.mainUI.setWindowTitle('EDAutopilot v2')
         # self.logger = Logger(self.mainUI.logText,toFile=True) # start logger
-        self.thread_log = LogThread(logPath=logPath)
+        self.thread_log = LogThread()
         self.logger = self.thread_log.getLogger()
         self.thread_log._logSignal.connect(self.onReceiveLog)
         self.thread_log.start()
 
         self.config = Config(logger=self.logger)
+        if self.config.get('Main','log_to_file'): self.thread_log.initFile(self.config.get('Main','override_previous_logs'))
         self.keysDict = init_keybinds(self.logger)
         
         self.mainUI.actionScriptName.setDisabled(True)
