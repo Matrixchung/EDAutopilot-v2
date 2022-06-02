@@ -293,8 +293,8 @@ class Main(QObject):
         if self.journal.nav.target is not None: self.shipTarget = self.journal.nav.target
 
         # display
-        self.locationLabel.setText(('Loc: '+self.shipLoc).ljust(49))
-        self.targetLabel.setText(('Target: '+self.shipTarget).ljust(49))
+        self.locationLabel.setText((f'Loc: {self.shipLoc}').ljust(49))
+        self.targetLabel.setText((f'Target: {self.shipTarget}').ljust(49))
 
         if self.thread_script is not None: # check if the script thread alives
             if not self.thread_script.isRunning(): # terminated
@@ -314,8 +314,8 @@ class Main(QObject):
         self.windowTopY = data.windowTopY
 
         # display
-        self.fpsLabel.setText(('FPS: '+str(self.fps)).ljust(8))
-        self.alignedLabel.setText(('Align: '+(str(1) if self.isAligned else str(0))).ljust(9))
+        self.fpsLabel.setText((f'FPS: {self.fps}').ljust(8))
+        self.alignedLabel.setText((f'Align: {1 if self.isAligned else 0}').ljust(9))
 
         # try to send data to ScriptThread
         if self.thread_script is not None:
@@ -341,7 +341,7 @@ class Main(QObject):
         _,self.scriptName = os.path.split(self.scriptPath)
         self.mainUI.actionScriptName.setText(self.scriptName)
         self.scriptName = self.scriptName[:-3] # remove '.py'
-        self.logger.info('Loading script: '+self.scriptPath,color='green')
+        self.logger.info(f'Loading script: {self.scriptPath}',color='green')
         try:
             self.thread_script = ScriptThread(self.scriptName,logger=self.logger,layout=self.mainUI.scriptLayout,keysDict=self.keysDict)
             self._outputSignalToScript.connect(self.thread_script.onReceiveData)
@@ -365,7 +365,7 @@ class Main(QObject):
                 self.mainUI.actionScriptName.setText('(Empty)')
         widgetCounts = self.mainUI.scriptLayout.count() # going to remove all created widgets
         if widgetCounts>0:
-            self.logger.info('Script exited, cleared '+str(widgetCounts)+' widget(s)')
+            self.logger.info(f'Script exited, cleared {widgetCounts} widget(s)')
             for i in range(widgetCounts):
                 item = self.mainUI.scriptLayout.itemAt(i)
                 if item.widget(): item.widget().deleteLater()

@@ -70,11 +70,11 @@ class Image:
             res = str(self.screenSize[0])+'x'+str(self.screenSize[1])
             if res in self.presetScales:
                 self.scale = self.presetScales[res]
-                self.logger.info('Screen resolution is '+res+', using scale '+str(self.scale))
+                self.logger.info(f'Screen resolution is {res}, using scale {self.scale}')
                 self.config.set('Image','calibrated_scale',str(self.scale))
             else: self.logger.warn('Screen resolution is not in presetScales, you may need to do calibration (Option->Settings->Graphics->Calibrate).')  
         else: self.scale = configuredScale
-        self.logger.info('Using scale: '+str(self.scale))
+        self.logger.info(f'Using scale: {self.scale}')
         # Load colormatrix from setting, if it is the same with default colorMatrix then set needMask to False
         if isfile(graphicsXmlPath):
             data = parse(graphicsXmlPath)
@@ -90,12 +90,15 @@ class Image:
                     self.originMatrix = colorMatrix
                     self.needMask = True
                     self.logger.info('Custom GUIColor detected, will attempt to transform')
+        self.addTemplates(self.templates)
+    
+    def addTemplates(self,templates:dict,debug=True) -> None:
         maskedCount = 0
         successCount = 0
-        for template in self.templates:
-            isGrayscale = self.templates[template]['grayscale']
-            isScalable = self.templates[template]['scalable']
-            absPath = joinPath(self.templates[template]['path'])
+        for template in templates:
+            isGrayscale = templates[template]['grayscale']
+            isScalable = templates[template]['scalable']
+            absPath = joinPath(templates[template]['path'])
             img = cv2.imread(absPath)
             if img is None: 
                 self.logger.warn("Failed to load template "+template)
@@ -107,21 +110,12 @@ class Image:
             else: img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY) # grayscale
             self.result[template] = img
             successCount += 1
-        self.logger.info("Successfully loaded "+str(successCount)+" templates ("+str(maskedCount)+" masked), "+str(len(self.templates)-successCount)+" failed.")
+        if debug: self.logger.info(f"Successfully loaded {successCount} templates ({maskedCount} masked), {len(self.templates)-successCount} failed.")
+
+    def matchTemplate(self):
+        pass
     
-    def addTemplates(self,templates:dict) -> None:
-        for template in templates:
-            isGrayscale = templates[template]['grayscale']
-            isScalable = templates[template]['scalable']
-            absPath = joinPath(templates[template]['path'])
-            img = cv2.imread(absPath)
-            if isScalable and self.scale is not None: img = self._resize(img,self.scale)
-            if not isGrayscale and self.needMask: # do transforming
-                img = self._applyColorMask(img,self.originMatrix)
-            else: img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY) # grayscale
-            self.result[template] = img
-    
-    def calibrate(self,startScale=(1.0,1.0)) -> tuple:
+    def calibrate(self,startScale=(1.0,1.0),attempts=10) -> tuple:
         pass
 
     def get(self,template) -> cv2.Mat :

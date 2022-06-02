@@ -218,8 +218,8 @@ def keyTranslate(keyName,logger=None):
     if keyName in convert_to_direct_keys: keyName = convert_to_direct_keys[keyName]
     keyName = keyName.upper()
     if keyName not in SCANCODE: 
-        if logger is not None: logger.critical(keyName+" is not in SCANCODE list!!")
-        else: print(keyName+" is not in SCANCODE list!!")
+        if logger is not None: logger.critical(f"{keyName} is not in SCANCODE list!!")
+        else: print(f"{keyName} is not in SCANCODE list!!")
         return 0x00
     return SCANCODE[keyName]
 
@@ -272,11 +272,11 @@ def init_keybinds(logger=None):
             emptyKeys.append(keyName)# no key is specific
     if len(emptyKeys)>0:
         if logger is not None:
-            logger.critical('Error in setting keybind(s): '+str(emptyKeys))
+            logger.critical(f'Error in setting keybind(s): {str(emptyKeys)}')
             logger.critical('You may have to bind the keybind(s) in game manually')
         else: 
-            print('Error in setting keybind(s): '+str(emptyKeys))
+            print(f'Error in setting keybind(s): {str(emptyKeys)}')
             print('You may have to bind the keybind(s) in game manually')
-    if logger is not None: logger.info('Successfully added '+str(successKeys)+' keybinds, '+str(len(emptyKeys))+' failed.')
-    else: print('Successfully added '+str(successKeys)+' keybinds, '+str(len(emptyKeys))+' failed.')
+    if logger is not None: logger.info(f'Successfully added {successKeys} keybinds, {len(emptyKeys)} failed.')
+    else: print(f'Successfully added {successKeys} keybinds, {len(emptyKeys)} failed.')
     return defaultDict

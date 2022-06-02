@@ -35,17 +35,17 @@ class Config:
                 data = self.defaultConfig[key]
                 for value in data:
                     if value not in self.config[key]:
-                        if self.logger is not None: self.logger.warn("Missing value "+str(value)+" in config section: ["+key+"]")
+                        if self.logger is not None: self.logger.warn(f"Missing value {value} in config section: [{key}]")
                         self.config[key][value] = str(data[value])
                         rewrite += 1
             else: 
-                if self.logger is not None: self.logger.warn("Missing section "+key+" in config")
+                if self.logger is not None: self.logger.warn(f"Missing section [{key}] in config")
                 self.config[key] = self.defaultConfig[key]
                 rewrite += 1
         if rewrite>0:
             self.save()
-            if self.logger is not None: self.logger.info("Successfully rewrote config with "+str(rewrite)+" missing entries.")
-        elif self.logger is not None: self.logger.info("Loaded config: "+self.configPath)
+            if self.logger is not None: self.logger.info(f"Successfully rewrote config with {rewrite} missing entries.")
+        elif self.logger is not None: self.logger.info(f"Loaded config: {self.configPath}")
     def get(self,key,value) -> object : 
         if key in self.config:
             if value in self.config[key]: 
