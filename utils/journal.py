@@ -31,6 +31,9 @@ class Journal:
         name: str = ''
         ident: str = ''
         fuel: float = 0.0
+        fuelCap: float = 0.0
+        fuelLevel: int = 100 # round((fuel/fuelCap)*100) %
+        isScooping: bool = False
         hull: float = 0.0
         cargoCap: int = 0
         jumpRange: float = 0.0
@@ -41,13 +44,14 @@ class Journal:
         location: str = ''
         lastTarget: str = ''
         target: str = ''
+        targetStarClass: str = ''
         remainingJumps: int = 0
         dockedStation: str = ''
     status: str = ''
     signs: set = field(default_factory=set) # unique signs
     missions: set[mission] = field(default_factory=set)
 journal = Journal()
-# STATUS: normal,undocking,docking,startUndock,startDock,docked,startJump,finishJump
+# STATUS: normal,undocking,docking,startUndock,startDock,docked,startJump,finishJump,supercruise
 def getNavRoute(routePath=None):
     if not routePath:
         routePath = savedGamePath+r"\NavRoute.json"
@@ -104,15 +108,19 @@ def parseLogs(logPath=None,logger=None) -> Journal:
                             journal.ship.name = logJson['ShipName']
                             journal.ship.ident = logJson['ShipIdent']
                             journal.ship.hull = logJson['HullHealth']
-                            journal.ship.fuel = logJson['FuelCapacity']['Main']
+                            journal.ship.fuelCap = logJson['FuelCapacity']['Main']
                             journal.ship.cargoCap = logJson['CargoCapacity']
                             journal.ship.jumpRange = logJson['MaxJumpRange']
                             journal.ship.modules = logJson['Modules']
 
                         elif logEvent == 'RefuelAll' or logEvent == 'RefuelPartial':
                             journal.ship.fuel += logJson['Amount']
+                            journal.ship.fuelLevel = round((journal.ship.fuel/journal.ship.fuelCap)*100)
                         elif logEvent == 'FuelScoop':
                             journal.ship.fuel += logJson['Scooped']
+                            journal.ship.fuelLevel = round((journal.ship.fuel/journal.ship.fuelCap)*100)
+                            if journal.log.updateInterval <= 10 and journal.ship.fuelLevel < 99: journal.ship.isScooping = True
+                            else: journal.ship.isScooping = False
                         
                         elif ((logEvent == 'ReceiveText' and 'AttackDutyStart' in logJson['Message']) or logEvent == 'Interdicted' or logEvent == 'UnderAttack' or (logEvent == 'Music' and (logJson['MusicTrack'] == 'Interdiction' or logJson['MusicTrack'] == 'Combat_Dogfight'))) and journal.log.updateInterval <= 30: # May be interdicted!
                             journal.signs.add('UnderAttack')
@@ -136,11 +144,17 @@ def parseLogs(logPath=None,logger=None) -> Journal:
                             journal.status = 'Docked'
                             journal.nav.dockedStation = logJson['StationName']
 
-                        elif logEvent == 'StartJump' and 'StarSystem' in logJson: 
-                            journal.status = 'startJump'
-                            journal.nav.location = logJson['StarSystem']
-                            journal.nav.lastTarget = logJson['StarSystem']
-                    
+                        elif logEvent == 'StartJump': 
+                            if logJson['JumpType'] == 'Hyperspace' and 'StarSystem' in logJson:
+                                journal.status = 'startJump'
+                                journal.nav.location = logJson['StarSystem']
+                                journal.nav.lastTarget = logJson['StarSystem']
+                                journal.nav.targetStarClass = logJson['StarClass']
+                            elif logJson['JumpType'] == 'Supercruise':
+                                journal.status = 'supercruise'
+                        
+                        elif logEvent == 'SupercruiseEntry': journal.status = 'supercruise'
+
                         elif logEvent == 'SupercruiseExit' or logEvent == 'DockingCancelled': journal.status = 'normal'
 
                         elif logEvent == 'Undocked': journal.status = 'normal'
@@ -155,10 +169,13 @@ def parseLogs(logPath=None,logger=None) -> Journal:
                     
                         elif logEvent == 'FSDJump':
                             journal.ship.fuel = logJson['FuelLevel']
+                            journal.ship.fuelLevel = round((journal.ship.fuel/journal.ship.fuelCap)*100)
                             if journal.nav.lastTarget == logJson['StarSystem']: 
                                 journal.nav.lastTarget = None
                                 journal.status = 'finishJump'
-                                if journal.nav.target == logJson['StarSystem'] and journal.nav.remainingJumps == 0 : journal.nav.target = None # Finish route
+                                if journal.nav.target == logJson['StarSystem'] and journal.nav.remainingJumps == 0 : 
+                                    journal.nav.targetStarClass = None
+                                    journal.nav.target = None # Finish route
                     
                         elif (logEvent == 'Location' or logEvent == 'FSDJump') and 'StarSystem' in logJson:
                             journal.nav.location = logJson['StarSystem']
@@ -187,4 +204,4 @@ if __name__ == '__main__': # Test
     # print(journal['isUnderAttack'])
     # print(journal['isBeingScanned'])
     jn = parseLogs()
-    print(jn.ship.modules)
+    print(jn.nav.targetStarClass)
