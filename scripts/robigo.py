@@ -1,13 +1,22 @@
-import imp
 from gameui import Logger, ScriptSession 
 from scripts.ScriptBase import ScriptBase
 from utils.utils import *
+from utils.image import Image
 from PySide2.QtWidgets import QGridLayout, QVBoxLayout, QLabel, QGroupBox, QComboBox
 from PySide2.QtCore import Qt
 import transitions
 pyautogui.FAILSAFE=False
-map_bookmark = loadFromFile("templates/map_bookmark.png")
-map_bookmarkHL = loadFromFile("templates/map_bookmark_highlight.png")
+# "Template name" : {"grayscale","scalable","path"}
+# under reconstruction
+templates = {
+    "map_sothis": {"grayscale": False, "scalable": False, "path": "templates/robigo/map_sothis_a_5.png"},
+    "map_sothisHL": {"grayscale": False, "scalable": False, "path": "templates/robigo/map_sothis_a_5_highlight.png"},
+    "map_robigo": {"grayscale": False, "scalable": False, "path": "templates/robigo/map_robigom.png"},
+    "map_robigoHL": {"grayscale": False, "scalable": False, "path": "templates/robigo/map_robigom_highlight.png"},
+    "sign_scassist": {"grayscale": False, "scalable": False, "path": "templates/sign_assist.png"},
+    # ...
+    # Reconstruction in progress
+}
 map_sothis = loadFromFile("templates/robigo/map_sothis_a_5.png")
 map_sothisHL = loadFromFile("templates/robigo/map_sothis_a_5_highlight.png")
 map_robigo = loadFromFile("templates/robigo/map_robigom.png")
@@ -110,8 +119,8 @@ class robigo(ScriptBase):
     ]
 
     initialState = 'initial' # do not change! (default: initial)
-    def __init__(self,logger:Logger=None,layout:QGridLayout=None,session:ScriptSession=None):
-        super().__init__(logger,layout,session)
+    def __init__(self,logger:Logger=None,layout:QGridLayout=None,session:ScriptSession=None,templates:Image=None):
+        super().__init__(logger,layout,session,templates)
         if self.stateOverride != '':self.initialState=self.stateOverride
         self.progress = p()
         self.machine = transitions.Machine(model=self.progress,states=self.states,initial=self.initialState)
@@ -178,7 +187,7 @@ class robigo(ScriptBase):
                     if keyboard.is_pressed("f9"):
                         pass
                 if missionCountOverride != 0: missionCount = missionCountOverride
-                else: missionCount = len(session.missionList)
+                else: missionCount = len(session.missions)
                 self.comboBox1.setDisabled(auto)
                 # 功能区
                 if auto:
@@ -266,10 +275,10 @@ class robigo(ScriptBase):
                                         session.sendKey('UI_Down')
                                         session.sleep(1)
                                     session.sleep(2)
-                                    missionCount = len(session.missionList)
+                                    missionCount = len(session.missions)
                                     if missionCount >= maxMissionCount : break # No more slot
                                 if missionCount >= maxMissionCount : break # break the outer loop
-                            missionCount = len(session.missionList)
+                            missionCount = len(session.missions)
                             if missionCount >= maxMissionCount or missionCount != 0 : # got
                                 machine.set_state('mission-received')
                                 logger.info("success")
@@ -708,10 +717,10 @@ class robigo(ScriptBase):
                                     # session.sendKey('UI_Select')
                                     if missionCountOverride >= 1: missionCountOverride -= 1
 
-                                missionCount = len(session.missionList)
+                                missionCount = len(session.missions)
                                 if missionCount == 0 and missionCountOverride == 0: break # No more mission
 
-                            missionCount = len(session.missionList)
+                            missionCount = len(session.missions)
                             if missionCount == 0: # all claimed
                                 # auto=False
                                 # failsafeState = ''

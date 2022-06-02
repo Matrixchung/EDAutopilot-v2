@@ -77,7 +77,7 @@ class LogThread(QThread):
 ## I/O THREAD START
 @dataclass
 class IOMsg:
-    journal: dict
+    journal: Journal
     stateList: list
     guiFocus: str
 class IOThread(QThread):
@@ -89,12 +89,12 @@ class IOThread(QThread):
         self.logger = logger
     def run(self) -> None:
         while True:
-            journal = setJournal()
+            journal = parseLogs(logger=self.logger)
             stateList = showAllTrueStatus()
             guiFocus = getGuiFocus()
             data = IOMsg(journal,stateList,guiFocus)
             self._ioSignal.emit(data)
-            isEmergency = journal['isUnderAttack'] or journal['isBeingScanned']
+            isEmergency = 'UnderAttack' in journal.signs or 'Scanned' in journal.signs
             if isEmergency and self.usingWatchdog and isProcessExist(globalProcessName): # Force terminating...
                 if self.logger is not None: self.logger.critical("Watchdog: killing process")
                 else: print("Watchdog: killing process")
@@ -208,8 +208,7 @@ class Main(QObject):
     fps = 0
     windowLeftX = windowTopY = 0
     stateList = []
-    journal = []
-    missionList = []
+    journal = Journal()
     shipLoc = ''
     shipTarget = ''
 
@@ -273,8 +272,8 @@ class Main(QObject):
         self.journal = data.journal
         self.stateList = data.stateList
         self.guiFocus = data.guiFocus
-        if self.journal['location'] is not None: self.shipLoc = self.journal['location']
-        if self.journal['target'] is not None: self.shipTarget = self.journal['target']
+        if self.journal.nav.location is not None: self.shipLoc = self.journal.nav.location
+        if self.journal.nav.target is not None: self.shipTarget = self.journal.nav.target
 
         # display
         self.locationLabel.setText(('Loc: '+self.shipLoc).ljust(49))

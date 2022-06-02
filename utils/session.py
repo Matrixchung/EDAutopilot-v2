@@ -1,13 +1,13 @@
 import time
 from dataclasses import dataclass
 from collections import Counter
-from utils.utils import sendHexKey,getKeys,ALIGN_DEAD_ZONE,ALIGN_KEY_DELAY,ALIGN_TRIMM_DELAY
+from utils.utils import sendHexKey,getKeys,Journal,ALIGN_DEAD_ZONE,ALIGN_KEY_DELAY,ALIGN_TRIMM_DELAY
 @dataclass
 class ScriptInputMsg:
     isAligned: bool
     isFocused: bool
     stateList: list
-    journal: dict
+    journal: Journal
     guiFocus: str
     targetX: int
     targetY: int
@@ -21,7 +21,7 @@ class ScriptSession: # will be initialized in ScriptThread
     isAligned = isFocused = False
     stateList = []
     journal = []
-    missionList = []
+    missions = []
     guiFocus = 'NoFocus'
     status = ''
     shipLoc = ''
@@ -40,10 +40,10 @@ class ScriptSession: # will be initialized in ScriptThread
         self.targetY = data.targetY
         self.navCenter = data.navCenter
         self.windowCoord = (data.windowLeftX,data.windowTopY)
-        self.status = self.journal['status']
-        self.shipLoc = self.journal['location']
-        self.shipTarget = self.journal['target']
-        self.missionList = self.journal['missions']
+        self.status = self.journal.status
+        self.shipLoc = self.journal.nav.location
+        self.shipTarget = self.journal.nav.target
+        self.missions = self.journal.missions
     
     def sendKey(self, key, hold=None, repeat=1, repeat_delay=None, state=None):
         sendHexKey(self.keysDict,key,hold=hold,repeat=repeat,repeat_delay=repeat_delay,state=state)
