@@ -279,7 +279,9 @@ def init_keybinds(logger=None):
                     defaultDict[keyName] = key
                     successKeys += 1
                     # print("Successfully added "+keyName+" "+key+" "+hex(keyTranslate(key)))
-                    continue    
+                    continue
+            if keyName.endswith('_Alt') and logger is not None:
+                logger.warn(f'For capability, Key {keyName} needs a secondary key setting while we failed to find it.')
             emptyKeys.append(keyName)# no key is specific
     if len(emptyKeys)>0:
         if logger is not None:
