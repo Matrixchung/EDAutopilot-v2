@@ -82,6 +82,11 @@ convert_to_direct_keys = {
     'Key_RightBracket': 'Key_RBracket',
 }
 
+duplicatedKeysDict = { # Here are some keybinds which may cause problems if they are binded to the same keys
+# in-program key alias: (in-game name, notice)
+    'UI_NextTab': ('CamYawRight', 'CycleNextPanel and CamYawRight (default: E) are duplicated. Please check the settings, otherwise the setTargetSystem() will not be performed correctly.'),
+    'UI_PrevTab': ('CamYawLeft', 'CyclePreviousPanel and CamYawLeft (default: Q) are duplicated. Please check the settings, otherwise the setTargetSystem() will not be performed correctly.')
+}
 #Scancode Reference
 SCANCODE = {
     'KEY_ESCAPE'          : 0x01,
@@ -231,7 +236,7 @@ def keyTranslate(keyName,logger=None):
     if keyName not in SCANCODE: 
         if logger is not None: logger.critical(f"{keyName} is not in SCANCODE list!!")
         else: print(f"{keyName} is not in SCANCODE list!!")
-        return 0x00
+        return 0x0
     return SCANCODE[keyName]
 
 def init_keybinds(logger=None):
@@ -261,6 +266,21 @@ def init_keybinds(logger=None):
             if keyName in aliasDict:
                 keybind = rootNode.getElementsByTagName(aliasDict[keyName])[0]
             else: keybind = rootNode.getElementsByTagName(keyName)[0]
+            dKeys = [] # duplicated key list
+            if keyName in duplicatedKeysDict: # we need to check if duplicated
+                duplicatedKeyName = duplicatedKeysDict[keyName][0]
+                try:
+                    k = rootNode.getElementsByTagName(duplicatedKeyName)[0]
+                    p = k.getElementsByTagName('Primary')[0]
+                    if p.getAttribute('Device') == 'Keyboard': # get all keys
+                        pKey = keyTranslate(p.getAttribute('Key'),logger=logger)
+                        if pKey != 0x0: dKeys.append(pKey)
+                    s = k.getElementsByTagName('Secondary')[0]
+                    if s.getAttribute('Device') == 'Keyboard': 
+                        sKey = keyTranslate(s.getAttribute('Key'),logger=logger)
+                        if sKey != 0x0: dKeys.append(sKey)
+                except:
+                    pass
             primary = keybind.getElementsByTagName('Primary')[0]
             primaryDevice = primary.getAttribute('Device')
             if primaryDevice == 'Keyboard' and not keyName.endswith('_Alt'):
@@ -268,6 +288,7 @@ def init_keybinds(logger=None):
                 if key != 0x0:
                     defaultDict[keyName] = key
                     successKeys += 1
+                    if key in dKeys and logger is not None: logger.warn(duplicatedKeysDict[keyName][1])
                     # print("Successfully added "+keyName+" "+key+" "+hex(keyTranslate(key)))
                     continue 
             # fall to secondary
@@ -278,6 +299,7 @@ def init_keybinds(logger=None):
                 if key != 0x0:
                     defaultDict[keyName] = key
                     successKeys += 1
+                    if key in dKeys and logger is not None: logger.warn(duplicatedKeysDict[keyName][1])
                     # print("Successfully added "+keyName+" "+key+" "+hex(keyTranslate(key)))
                     continue
             if keyName.endswith('_Alt') and logger is not None:
