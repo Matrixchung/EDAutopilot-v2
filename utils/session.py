@@ -33,10 +33,10 @@ class ScriptSession: # will be initialized in ScriptThread
     shipLoc = ''
     shipTarget = ''
     windowCoord = (0,0)
-    def __init__(self,logger=None,keysDict:dict=None):
+    def __init__(self,logger=None,keysDict:dict=None) -> None:
         self.logger = logger
         self.keysDict = keysDict
-    def _update(self,data:ScriptInputMsg):
+    def _update(self,data:ScriptInputMsg) -> None:
         self.isAligned = data.isAligned
         self.isFocused = data.isFocused
         self.stateList = data.stateList
@@ -51,10 +51,13 @@ class ScriptSession: # will be initialized in ScriptThread
         self.shipTarget = self.journal.nav.target
         self.version = self.journal.log.version
         self.missions = self.journal.missions
-    
-    def sendKey(self, key, hold=None, repeat=1, repeat_delay=None, state=None):
+    def sendKey(self, key:str, hold:float=None, repeat:int=1, repeat_delay:float=None, state=None, sleep:float=None) -> None:
+        """
+        @param sleep: the seconds you want to sleep after the given key is pressed
+        """
         sendHexKey(self.keysDict,key,hold=hold,repeat=repeat,repeat_delay=repeat_delay,state=state)
-    def sleep(self,delay):
+        if sleep: self.sleep(sleep)
+    def sleep(self,delay:float) -> None:
         time.sleep(delay)
     def align(self) -> bool : # return False if already aligned
         if self.targetX == -1 or self.targetY == -1 : return True # 
@@ -86,58 +89,64 @@ class ScriptSession: # will be initialized in ScriptThread
         pass
     def startRoute(self) -> bool: # start a new RouteAssist thread (using statemachine for multi-star route)
         pass
-    def jump(self,estimatedTarget=None) -> bool: # if current target != estimated target then the jumping won't be performed
+    def jump(self,estimatedTarget:str=None) -> bool: # if current target != estimated target then the jumping won't be performed
         pass
     def isEnRoute(self) -> bool:
         pass
-    def stopRoute(self,force=False) -> bool:
+    def stopRoute(self,force:bool=False) -> bool:
         pass
     def getRouteDetails(self) -> dict:
         pass
     def setTargetSystem(self,target:str) -> bool:
         if self.version == 'Odyssey': # Odyssey version
-            self.sendKey('UI_Back',repeat=3)
-            self.sleep(2)
-            self.sendKey('UI_OpenGalaxyMap')
-            self.sleep(3)
+            self.sendKey('UI_Back',repeat=3,sleep=2)
+            self.sendKey('UI_OpenGalaxyMap',sleep=3)
             if self.guiFocus == 'GalaxyMap':
-                self.sendKey('UI_Up_Alt')
-                self.sleep(1)
+                self.sendKey('UI_Up_Alt',sleep=1)
                 self.sendKey('UI_Select')
                 typewrite(target)
                 self.sleep(2)
-                self.sendKey('UI_Down_Alt')
-                self.sleep(1)
+                self.sendKey('UI_Down_Alt',sleep=1)
                 self.sendKey('UI_Select')
-                self.sleep(6) # waiting to move to the target
+                self.sleep(7) # waiting to move to the target
                 self.sendKey('UI_Right_Alt')
                 self.sendKey('UI_Down_Alt',repeat=6)
-                self.sendKey('UI_Select')
-                self.sleep(3)
+                self.sendKey('UI_Select',sleep=3)
                 self.sendKey('UI_Back',repeat=2)
                 return True
-            else: return False
-    def clearRoute(self) -> bool:
-        if self.version == 'Odyssey': # Odyssey version
-            self.sendKey('UI_Back',repeat=3)
-            self.sleep(2)
-            self.sendKey('UI_OpenGalaxyMap')
-            self.sleep(3)
+        elif self.version == 'Horizons': # Horizons version
+            self.sendKey('UI_Back',repeat=3,sleep=2)
+            self.sendKey('UI_OpenGalaxyMap',sleep=3)
             if self.guiFocus == 'GalaxyMap':
-                self.sendKey('UI_Left_Alt')
-                self.sleep(1)
-                self.sendKey('UI_Down_Alt',repeat=13) # to the bottom
-                self.sleep(1)
-                self.sendKey('UI_Up_Alt',repeat=2) # select route settings
-                self.sleep(1)
+                self.sendKey('UI_Select',sleep=1)
+                self.sendKey('UI_NextTab',sleep=1)
+                self.sendKey('UI_Select',sleep=1)
+                typewrite(target)
+                self.sendKey('enter')
+                self.sleep(7) # waiting to move to the target
+                self.sendKey('UI_Right_Alt')
                 self.sendKey('UI_Select')
-                self.sleep(1)
-                self.sendKey('UI_Up_Alt',repeat=4) # to the top
-                self.sleep(1)
+                self.sleep(2)
+                self.sendKey('UI_Back')
+                return True
+        return False
+
+    def clearRoute(self,target:str=None) -> bool: # For Horizons,we need to know the exact target to clear it
+        if self.version == 'Odyssey': # Odyssey version
+            self.sendKey('UI_Back',repeat=3,sleep=2)
+            self.sendKey('UI_OpenGalaxyMap',sleep=3)
+            if self.guiFocus == 'GalaxyMap':
+                self.sendKey('UI_Left_Alt',sleep=1)
+                self.sendKey('UI_Down_Alt',repeat=13,sleep=1) # to the bottom
+                self.sendKey('UI_Up_Alt',repeat=2,sleep=1) # select route settings
+                self.sendKey('UI_Select',sleep=1)
+                self.sendKey('UI_Up_Alt',repeat=4,sleep=1) # to the top
                 self.sendKey('UI_Down_Alt')
                 # WIP
                 return True
-            else: return False
+        elif self.version == 'Horizons' and target: # Horizons version, which needs a 'target' input
+            pass
+        return False
     ## PIP Managements
     def pipReset(self):
         self.sendKey('PipDown')
