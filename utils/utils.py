@@ -22,32 +22,13 @@ KEY_DEFAULT_DELAY = 0.120
 KEY_REPEAT_DELAY = 0.200
 MOUSE_CLICK_DELAY = 0.200
 DELAY_BETWEEN_KEYS = 1.5
-ALIGN_DEAD_ZONE = 1.6
-TEMPLATE_CIRCLE_DEAD_ZONE = 52
+ALIGN_DEAD_ZONE = 1
+ROLL_YAW_DEAD_ZONE = 5
+TEMPLATE_CIRCLE_DEAD_ZONE = 53
 
 globalWindowName = "Elite - Dangerous (CLIENT)"
 globalProcessName = "EliteDangerous64.exe"
 fileRootPath = pathlib.Path.cwd()
-
-params = cv2.SimpleBlobDetector_Params()
-params.filterByArea = True
-params.minArea = 15
-params.filterByColor = True
-params.blobColor = 255
-params.filterByCircularity = True
-params.minCircularity = 0.4
-params.filterByConvexity = True
-params.minConvexity = 0.3
-params.filterByInertia = True
-params.minInertiaRatio = 0.3
-
-hsvWhiteLow = np.array([0,0,57])
-hsvWhiteUp = np.array([179,55,254]) # Filter White
-# hsvUILow = np.array([100,43,46])
-hsvUILow = np.array([75,45,51])
-hsvUIUp = np.array([124,254,254]) # Filter UI
-hsvNavPointLow = np.array([11,43,46])
-hsvNavPointUp = np.array([25,254,254]) # Filter navPoints
 
 def joinPath(pathName):
     if '.vscode' in str(fileRootPath): root = fileRootPath.parent
@@ -55,8 +36,6 @@ def joinPath(pathName):
     if pathName[0] == '/' or pathName[0] == '\\': pathName = pathName[1:]
     result = str(root.joinpath(pathName))
     return result
-
-destCircleImg = cv2.imread(joinPath("templates/dest_circle.png"),0)
 
 ## In-Game Utils
 
@@ -85,87 +64,21 @@ def sendHexKey(keysDict, key, hold=None, repeat=1, repeat_delay=None, state=None
         else:
             time.sleep(0.08)
 
-
 def checkAlignWithTemplate(centerImg,circleImg): 
     result = False
     _,binary = cv2.threshold(centerImg,110,255,cv2.THRESH_BINARY)
     # result = cv2.matchTemplate(binary, circleImg, cv2.TM_CCORR)
-    result = cv2.matchTemplate(binary, circleImg, cv2.TM_CCOEFF)
-    _, max_val, _, max_loc = cv2.minMaxLoc(result)
+    dst = cv2.matchTemplate(binary, circleImg, cv2.TM_CCOEFF)
+    _, max_val, _, max_loc = cv2.minMaxLoc(dst)
     th,tw = circleImg.shape[:2]
+    ch,cw = centerImg.shape[:2]
     if max_val > 10000000: # I dont know why
         tl = max_loc
         br = (tl[0] + tw, tl[1] + th)
-        cirCenter = (tl[0]+br[0])/2-60,(tl[1]+br[1])/2 # template circle's center
-        center = 180,220 # current center
-        if abs(center[0]-cirCenter[0])<TEMPLATE_CIRCLE_DEAD_ZONE and abs(center[1]-cirCenter[1])<TEMPLATE_CIRCLE_DEAD_ZONE : result = True
+        cirCenter = ((tl[0]+br[0])/2)*0.8,(tl[1]+br[1])/2 # template circle's center
+        center = cw/2, ch/2
+        result = abs(center[0]-cirCenter[0])<TEMPLATE_CIRCLE_DEAD_ZONE and abs(center[1]-cirCenter[1])<TEMPLATE_CIRCLE_DEAD_ZONE
     return result
-
-# Window Utils
-navPointsPrevX = -1.0
-navPointsPrevY = -1.0
-def getNavPointsByCompass(compassImg,compassShowImg,compassHsv,isShowImg=False):
-# def getNavPointsByCompass(compassImg,compassHsv): # NO IMAGE RETURN NEEDED
-    global navPointsPrevX,navPointsPrevY
-    try:
-        compassHsvUI = cv2.inRange(compassHsv,hsvUILow,hsvUIUp)
-        maskedImg = compassImg.copy()
-        maskedImg = filterColorInMask(maskedImg,compassHsvUI,highlight=True)
-        # binary = maskedImg.copy()
-        # ret1,binary1 = cv2.threshold(maskedImg,130,255,cv2.THRESH_TOZERO_INV)
-        # ret,binary = cv2.threshold(binary1,100,255,cv2.THRESH_BINARY) 
-        # del ret1,ret
-        # # binary = cv2.dilate(binary,kernel)
-        # # binary = cv2.blur(binary,(3,3))
-        # # binary = cv2.equalizeHist(binary)
-        # binary = cv2.GaussianBlur(binary,(3,3),0)
-        # binary = cv2.medianBlur(binary, 5)
-        binary = cv2.GaussianBlur(maskedImg,(3,3),0)
-        circles = cv2.HoughCircles(binary, method=cv2.HOUGH_GRADIENT,dp=1,minDist=200,param1=50,param2=48,minRadius=20,maxRadius=30) 
-        if circles is not None:
-            circles = circles[0,:]
-            compassX,compassY,compassRadius=circles[0]
-            cv2.circle(compassShowImg, (int(compassX),int(compassY)), int(compassRadius), (36,255,12), 2)
-            if compassRadius !=0 : 
-                navPointImg = compassImg[int(compassY-compassRadius)-10:int(compassY+compassRadius)+10,int(compassX-compassRadius)-10:int(compassX+compassRadius)+10]
-                navPointHsv = compassHsv[int(compassY-compassRadius)-10:int(compassY+compassRadius)+10,int(compassX-compassRadius)-10:int(compassX+compassRadius)+10]
-                navPointHsv = cv2.inRange(navPointHsv,hsvNavPointLow,hsvNavPointUp)
-                navPointImg = filterColorInMask(navPointImg,navPointHsv)
-                navCenter = compassRadius+10.0
-                navPointImg = cv2.GaussianBlur(navPointImg,(7,7),0)
-                # _, navPointImg = cv2.threshold(navPointImg,10,255,cv2.THRESH_BINARY)# To make not-black pixels white
-                navPoints = keyPointDetector(navPointImg)
-                navShowImg = cv2.cvtColor(navPointImg,cv2.COLOR_GRAY2RGB)
-                if navPoints is not None:
-                    # targetX = int(navPoints[0])
-                    # targetY = int(navPoints[1])
-                    targetX = navPoints[0]
-                    targetY = navPoints[1] # change to float
-                    if navPointsPrevX == -1.0 or navPointsPrevY == -1.0: # initialize
-                        navPointsPrevX = targetX
-                        navPointsPrevY = targetY
-                    elif abs(navPointsPrevX-targetX)>=40 or abs(navPointsPrevY-targetY)>=40:
-                        targetX = navPointsPrevX
-                        targetY = navPointsPrevY
-                    else:
-                        navPointsPrevX = targetX
-                        navPointsPrevY = targetY
-                    if targetX != -1 and targetY != -1:
-                        cv2.circle(navShowImg, (int(targetX),int(targetY)), 2, (36,255,12), 2)
-                        cv2.line(navShowImg,(int(navCenter),int(navCenter)),(int(targetX),int(targetY)),(0,255,0))
-                    cv2.putText(compassShowImg,"target:%s,%s"%(int(targetX),int(targetY)),(10,20),cv2.FONT_HERSHEY_DUPLEX,1,(0,255,0))
-                else: 
-                    cv2.putText(compassShowImg,"target:x",(10,20),cv2.FONT_HERSHEY_DUPLEX,1,(0,255,0))
-                    targetX=targetY=-1.0
-        else:
-            targetX=targetY=navCenter=-1.0
-            navShowImg = None
-    except Exception as e: 
-        print('Error in getNavPointsByCompass()')
-        targetX=targetY=navCenter=-1.0
-        navShowImg = None
-    return (targetX,targetY),navCenter
-    # return (targetX,targetY),navCenter # NO IMAGE RETURN NEEDED
 
 def loadImage(img, grayscale=None):
     # load images if given filename, or convert as needed to opencv
@@ -216,15 +129,6 @@ def locate(templateImg,originImg,confidence=0.999,limit=100): # template: BGR, o
     for x, y in zip(matches[1], matches[0]):
         yield x,y
 
-def screenCapture(toFile=True):
-    gameCoord,hwnd = getWindowRectByName(globalWindowName)
-    if toFile is True:
-        imgPath = time.strftime("%Y-%m-%d-%H-%M-%S",time.localtime())+".png"
-        img = pyautogui.screenshot(imgPath,region=gameCoord)
-    else:
-        img = pyautogui.screenshot(region=gameCoord)
-        return img
-
 def locateImageInGame(targetImg,relRegion=None,confidence=None,absolute=True,windowName=globalWindowName): # relRegion: relative region in game, absolute: return absolute coords insteads of relative coords for mouse-clicking
     if relRegion is not None:
         assert len(relRegion)==4 , 'Error in locateImageInGame(): invalid relative region' # startX,startY,endX,endY
@@ -257,16 +161,6 @@ def locateButtons(img,imgHL,confidence1=None,confidence2=None):
     else : imgHL = locateImageInGame(imgHL)
     if imgHL[0] == -1: return imgLoc
     if imgLoc[0] == -1: return imgHL
-    
-detector = cv2.SimpleBlobDetector_create(params)
-def keyPointDetector(sourceImg):
-    keypoints = detector.detect(sourceImg)
-    # print(keypoints[0].pt)
-    # navRGB = cv2.cvtColor(navShowImg,cv2.COLOR_GRAY2BGR)
-    # im_with_keypoints = cv2.drawKeypoints(navRGB, keypoints, np.array([]), (0,255,0), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-    if not keypoints:
-        return None
-    return keypoints[0].pt
 
 def filterColorInMask(origin,mask,highlight=False,dimensions=1):
     row,column = origin.shape[:2]
@@ -321,13 +215,12 @@ def mouseClick(*args): # y=None to provide compability to Tuple
     pyautogui.mouseUp()
     return True
 
-def isForegroundWindow(windowName,windowHwnd=None):
-    if windowHwnd == None:
-        windowHwnd = win32gui.FindWindow(None, windowName)
-    foregroundHwnd = win32gui.GetForegroundWindow()
-    if windowHwnd == foregroundHwnd:
-        return True
-    return False
+def isForegroundWindow(windowName,windowHwnd=None) -> bool:
+    try:
+        if windowHwnd==None: windowHwnd=win32gui.FindWindow(None, windowName)
+        foregroundHwnd=win32gui.GetForegroundWindow()
+        return windowHwnd==foregroundHwnd
+    except: return False
 
 def isFileOpen(filePath):
     try:

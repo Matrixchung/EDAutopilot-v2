@@ -1,7 +1,7 @@
 from gameui import Logger, ScriptSession 
 from scripts.ScriptBase import ScriptBase
 from utils.utils import *
-from utils.image import Image
+from utils.image import Image, Screen
 from PySide2.QtWidgets import QGridLayout, QVBoxLayout, QLabel, QGroupBox, QComboBox
 from PySide2.QtCore import Qt
 import transitions
@@ -119,8 +119,8 @@ class robigo(ScriptBase):
     ]
 
     initialState = 'initial' # do not change! (default: initial)
-    def __init__(self,logger:Logger=None,layout:QGridLayout=None,session:ScriptSession=None,templates:Image=None):
-        super().__init__(logger,layout,session,templates)
+    def __init__(self,logger:Logger=None,layout:QGridLayout=None,session:ScriptSession=None,templates:Image=None,screen:Screen=None):
+        super().__init__(logger,layout,session,templates,screen)
         if self.stateOverride != '':self.initialState=self.stateOverride
         self.progress = p()
         self.machine = transitions.Machine(model=self.progress,states=self.states,initial=self.initialState)
@@ -172,7 +172,7 @@ class robigo(ScriptBase):
         failsafeState = ''
         while True:
             try:
-                # 输入区
+                # Inputs
                 if keyboard.is_pressed('o'): 
                     align = True
                 if keyboard.is_pressed('home'): 
@@ -181,7 +181,7 @@ class robigo(ScriptBase):
                 if keyboard.is_pressed('end'):
                     auto = False
                 if isDebug : # Debugging functions
-                    if keyboard.is_pressed('capslock+space'): screenCapture()
+                    if keyboard.is_pressed('capslock+space'): session.screenCapture()
                     if keyboard.is_pressed("f11") : 
                         pass
                     if keyboard.is_pressed("f9"):
@@ -189,7 +189,7 @@ class robigo(ScriptBase):
                 if missionCountOverride != 0: missionCount = missionCountOverride
                 else: missionCount = len(session.missions)
                 self.comboBox1.setDisabled(auto)
-                # 功能区
+                # Functions
                 if auto:
                     if progress.state!='initial':
                         elapsedTime = datetime.now()-startTime
@@ -734,22 +734,5 @@ class robigo(ScriptBase):
                 self.label4.setText('MissionCount: '+str(missionCount))
                 self.label5.setText('Time Elapsed: '+str(elapsedTime))
                 self.label6.setText('Auto: '+str(auto))
-                """ if isDebug:
-                    cv2.putText(statusImg,'%s'%progress.state,(10,30),cv2.FONT_HERSHEY_DUPLEX,1,(0,255,0))
-                    # cv2.putText(statusImg,'GUIFocus:%s'%session.guiFocus,(10,30),cv2.FONT_HERSHEY_DUPLEX,1,(0,255,0))
-                    
-                    cv2.putText(statusImg,'Loc:%s'%session.shipLoc,(400,30),cv2.FONT_HERSHEY_DUPLEX,1,(0,255,0))
-                    cv2.putText(statusImg,'Target:%s'%session.shipTarget,(960,30),cv2.FONT_HERSHEY_DUPLEX,1,(0,255,0))
-                    cv2.putText(statusImg,'%s'%elapsedTime,(10,60),cv2.FONT_HERSHEY_DUPLEX,1,(0,255,0))
-                    cv2.putText(statusImg,"align:%s"%int(session.isAligned),(270,60),cv2.FONT_HERSHEY_DUPLEX,1,(0,255,0))
-                    cv2.putText(statusImg,"count:%s"%missionCount,(800,60),cv2.FONT_HERSHEY_DUPLEX,1,(0,255,0))
-                    cv2.putText(statusImg,'Status:%s'%session.status,(400,60),cv2.FONT_HERSHEY_DUPLEX,1,(0,255,0))
-                    fps = 0
-                    if session.imageProcessTime != 0 : fps = int(1.0/session.imageProcessTime)
-                    cv2.putText(statusImg,'FPS:%s'%fps,(960,60),cv2.FONT_HERSHEY_DUPLEX,1,(0,255,0))
-                    
-                    cv2.imshow('status',statusImg)
-                    statusImg.fill(0)
-                    cv2.waitKey(1) """
             except:
                 logger.warn(traceback.format_exc())

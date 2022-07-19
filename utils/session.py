@@ -1,9 +1,12 @@
 import time
+import cv2
+import numpy as np
 from PySide2.QtCore import QThread
 from dataclasses import dataclass
 from collections import Counter
-from utils.utils import sendHexKey,getKeys,Journal,ALIGN_DEAD_ZONE,ALIGN_KEY_DELAY,ALIGN_TRIMM_DELAY
+from utils.utils import ROLL_YAW_DEAD_ZONE, sendHexKey,getKeys,Journal,ALIGN_DEAD_ZONE,ALIGN_KEY_DELAY,ALIGN_TRIMM_DELAY
 from utils.keybinds import typewrite
+from utils.image import Screen, Image
 @dataclass
 class ScriptInputMsg:
     isAligned: bool
@@ -11,9 +14,9 @@ class ScriptInputMsg:
     stateList: list
     journal: Journal
     guiFocus: str
-    targetX: int
-    targetY: int
-    navCenter: int
+    offsetX: int
+    offsetY: int
+    isHollow: bool
     windowLeftX: int
     windowTopY: int
 class routeWorker(QThread):
@@ -23,7 +26,7 @@ class ScriptSession: # will be initialized in ScriptThread
     # _inSignal = Signal(object)
     # _outSignal = Signal(object)
     version = ''
-    targetX = targetY = navCenter = 0
+    offsetX = offsetY = 0
     isAligned = isFocused = False
     stateList = []
     journal = []
@@ -33,18 +36,20 @@ class ScriptSession: # will be initialized in ScriptThread
     shipLoc = ''
     shipTarget = ''
     windowCoord = (0,0)
-    def __init__(self,logger=None,keysDict:dict=None) -> None:
+    def __init__(self,logger=None,keysDict:dict=None,image:Image=None,screen:Screen=None) -> None:
         self.logger = logger
         self.keysDict = keysDict
+        self.image = image
+        self.screen = screen
     def _update(self,data:ScriptInputMsg) -> None:
         self.isAligned = data.isAligned
         self.isFocused = data.isFocused
         self.stateList = data.stateList
         self.journal = data.journal
         self.guiFocus = data.guiFocus
-        self.targetX = data.targetX
-        self.targetY = data.targetY
-        self.navCenter = data.navCenter
+        self.offsetX = data.offsetX
+        self.offsetY = data.offsetY
+        self.isHollow = data.isHollow
         self.windowCoord = (data.windowLeftX,data.windowTopY)
         self.status = self.journal.status
         self.shipLoc = self.journal.nav.location
@@ -60,21 +65,28 @@ class ScriptSession: # will be initialized in ScriptThread
     def sleep(self,delay:float) -> None:
         time.sleep(delay)
     def align(self) -> bool : # return False if already aligned
-        if self.targetX == -1 or self.targetY == -1 : return True # 
-        if self.isAligned == 1 or self.isFocused == 0: return False
-        offsetX = abs(self.targetX-self.navCenter)
-        offsetY = abs(self.targetY-self.navCenter)
-        # if offsetX<0.2 and offsetY<0.2: return False # magic number: minimum range for SimpleBlobDetector
+        if self.offsetX == 0 and self.offsetY == 0 : return True
+        if self.isAligned == 1: return False
+        offsetX, offsetY = self.offsetX, self.offsetY
         trimX = trimY = 0.0
-        if offsetX<3: trimX = ALIGN_TRIMM_DELAY
-        if offsetY<3: trimY = ALIGN_TRIMM_DELAY
-        if offsetY>ALIGN_DEAD_ZONE:
-            if self.targetY<self.navCenter: self.sendKey('PitchUpButton',hold=ALIGN_KEY_DELAY-trimY)
-            else : self.sendKey('PitchDownButton',hold=ALIGN_KEY_DELAY-trimY)
-        elif offsetX>ALIGN_DEAD_ZONE: # align Y-Axis first
-            if self.targetX>self.navCenter: self.sendKey('YawRightButton',hold=ALIGN_KEY_DELAY-trimX)
-            else : self.sendKey('YawLeftButton',hold=ALIGN_KEY_DELAY-trimX)
+        absX, absY = abs(offsetX), abs(offsetY)
+        if absX<3: trimX = ALIGN_TRIMM_DELAY
+        if absY<3: trimY = ALIGN_TRIMM_DELAY
+        if self.isHollow: # hollow dot, which means we are in the opposite side
+            if offsetY<0: self.sendKey('PitchUpButton',hold=ALIGN_KEY_DELAY)
+            else: self.sendKey('PitchDownButton',hold=ALIGN_KEY_DELAY)
+        elif absX>ALIGN_DEAD_ZONE: # align X-Axis first
+            if absX>ROLL_YAW_DEAD_ZONE:
+                if offsetX>0: self.sendKey('RollRightButton' if offsetY<0 else 'RollLeftButton',hold=0.1)
+                else: self.sendKey('RollLeftButton' if offsetY<0 else 'RollRightButton',hold=0.1)
+            else:
+                if offsetX>0: self.sendKey('YawRightButton',hold=ALIGN_KEY_DELAY-trimX)
+                else : self.sendKey('YawLeftButton',hold=ALIGN_KEY_DELAY-trimX)
+        elif absY>ALIGN_DEAD_ZONE:
+            if offsetY<0: self.sendKey('PitchUpButton',hold=ALIGN_KEY_DELAY-trimY)
+            else: self.sendKey('PitchDownButton',hold=ALIGN_KEY_DELAY-trimY)
         return True
+  
     def sunAvoiding(self,fwdDelay=18,turnDelay=12):
         self.sendKey('SpeedZero')
         self.sleep(2)
@@ -189,3 +201,8 @@ class ScriptSession: # will be initialized in ScriptThread
             for key in getKeys(pipDict,2.5): self.sendKey(key)
         else: return False
         return True
+    
+    def screenCapture(self,imageName:str=None,grayscale:bool=False) -> cv2.Mat:
+        img = self.screen.screenshot(grayscale=grayscale)
+        if imageName is not None: cv2.imwrite(imageName,img)
+        return img

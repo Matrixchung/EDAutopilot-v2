@@ -1,11 +1,11 @@
 from gameui import Logger, ScriptSession
 from PySide2.QtWidgets import QGridLayout
 from PySide2.QtCore import QObject
-from utils.image import Image
+from utils.image import Image, Screen
 class ScriptBase(QObject):
     description ='''
     '''
-    def __init__(self,logger:Logger=None,layout:QGridLayout=None,session:ScriptSession=None,templates:Image=None) -> None:
+    def __init__(self,logger:Logger=None,layout:QGridLayout=None,session:ScriptSession=None,templates:Image=None,screen:Screen=None) -> None:
         """
         Initialize the script including logger (print message to Logging area) 
         and layout (provides a QGridLayout so you can add widgets on the Script area) 
@@ -16,6 +16,7 @@ class ScriptBase(QObject):
         self.layout = layout
         self.session = session
         self.templates = templates
+        self.screen = screen
         self._print_description()
     
     def _print_description(self) -> None:

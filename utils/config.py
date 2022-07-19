@@ -16,10 +16,12 @@ class Config:
         },
         "GUI": {
             "load_default_on_startup": "False",
-            "default_script": ""      # Default script path, the program will try to open it 
+            "default_script": "",      # Default script path, the program will try to open it 
+            "show_debug_window": "True"
         },
         "Image": {
-            "calibrated_scale": [-1.0, -1.0]
+            "game_resolution": [-1, -1],
+            "calibrated_scale": [-1.0, -1.0],
         }
     }
     config = configparser.ConfigParser()
@@ -35,17 +37,17 @@ class Config:
                 data = self.defaultConfig[key]
                 for value in data:
                     if value not in self.config[key]:
-                        if self.logger is not None: self.logger.warn(f"Missing value {value} in config section: [{key}]")
+                        if self.logger: self.logger.warn(f"Missing value {value} in config section: [{key}]")
                         self.config[key][value] = str(data[value])
                         rewrite += 1
             else: 
-                if self.logger is not None: self.logger.warn(f"Missing section [{key}] in config")
+                if self.logger: self.logger.warn(f"Missing section [{key}] in config")
                 self.config[key] = self.defaultConfig[key]
                 rewrite += 1
         if rewrite>0:
             self.save()
-            if self.logger is not None: self.logger.info(f"Successfully rewrote config with {rewrite} missing entries.")
-        elif self.logger is not None: self.logger.info(f"Loaded config: {self.configPath}")
+            if self.logger: self.logger.info(f"Successfully rewrote config with {rewrite} missing entries.")
+        elif self.logger: self.logger.info(f"Loaded config: {self.configPath}")
     def get(self,key,value) -> object : 
         if key in self.config:
             if value in self.config[key]: 
@@ -59,7 +61,7 @@ class Config:
                     data = data.replace("[","").replace("]","").replace(" ","").split(",")
                     numericResult = []
                     for item in data:
-                        if item.isdigit(): numericResult.append(int(item))
+                        if item.replace('-','').isdigit(): numericResult.append(int(item))
                         elif isFloat(item): numericResult.append(float(item))
                         else: 
                             numericResult = []

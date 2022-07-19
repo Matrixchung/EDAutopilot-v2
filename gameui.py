@@ -1,13 +1,13 @@
 from PySide2.QtGui import QImage, QPixmap, QTextCharFormat, QColor, QBrush, QCursor
-from PySide2.QtWidgets import QApplication, QFileDialog, QPlainTextEdit, QLabel, QMenu, QAction, QGridLayout
+from PySide2.QtWidgets import QApplication, QFileDialog, QLabel, QMenu, QAction, QGridLayout, QWidget
 from PySide2.QtUiTools import QUiLoader
 from PySide2.QtCore import QThread, QObject, Signal
 from queue import Queue
 from dataclasses import dataclass
 from utils.utils import *
 from utils.config import Config
-from utils.session import ScriptInputMsg, ScriptSession
-from utils.image import Image
+from utils.session import *
+from datetime import datetime
 import sys
 import webbrowser
 import importlib
@@ -22,8 +22,8 @@ IMAGE_MINIMUM_TIMEOUT = 0.2 # sleep for # in each cycle to prevent heavy CPU loa
 IMAGE_WAITING_TIMEOUT = 5 # Re-detecing timeout if ImageThread found no process instance
 
 rootPath = os.path.split(os.path.realpath(__file__))[0]
-mainWindowPath = rootPath+'/assets/main.ui'
-subWindowPath = rootPath+'/assets/sub.ui'
+mainWindowPath = f"{rootPath}/assets/main.ui"
+subWindowPath = f"{rootPath}/assets/sub.ui"
 defaultLogPrefix = 'autopilot'
 
 ## LOGGER THREAD START
@@ -41,29 +41,31 @@ class Logger:
     def setInitFile(self,logPath): 
         self.init_file = True
         self.logPath = logPath
-        open(self.logPath, "w")
+        nowTime = datetime.now().strftime('%Y-%m-%d')
+        with open(self.logPath, "w") as dest:
+            dest.write(f"# Autopilot log starts at {nowTime}\n")
     def _outputText(self,message:str,color='black',toFile=True):
         if toFile and self.init_file and self.logPath is not None:
             msgStack = traceback.format_stack(limit=3)[0]
             file,line=stackAnalyser(msgStack)
             with open(self.logPath, "a") as dest:
-                dest.write(file+":"+str(line)+" - "+message+"\n")
+                dest.write(f"{file}:{line} - {message}\n")
         msg = LogMsg(message,color)
         self.queue.put(msg)
     def tip(self,message:str):
-        msg = ('['+datetime.now().strftime('%H:%M:%S')+'][TIP] '+str(message))
+        msg = f"[{datetime.now().strftime('%H:%M:%S')}][TIP] {message}"
         self._outputText(msg,color='blue',toFile=False) # don't save tips
     def debug(self,message:str): 
-        msg = ('['+datetime.now().strftime('%H:%M:%S')+'][DEBUG] '+str(message))
+        msg = f"[{datetime.now().strftime('%H:%M:%S')}][DEBUG] {message}"
         self._outputText(msg,color='black',toFile=False) # don't save debug
     def info(self,message:str,color='black'):
-        msg = ('['+datetime.now().strftime('%H:%M:%S')+'][INFO] '+str(message))
+        msg = f"[{datetime.now().strftime('%H:%M:%S')}][INFO] {message}"
         self._outputText(msg,color=color)
     def warn(self,message:str):
-        msg = ('['+datetime.now().strftime('%H:%M:%S')+'][WARN] '+str(message))
+        msg = f"[{datetime.now().strftime('%H:%M:%S')}][WARN] {message}"
         self._outputText(msg,color='orange')
     def critical(self,message:str):
-        msg = ('['+datetime.now().strftime('%H:%M:%S')+'][CRITICAL] '+str(message))
+        msg = f"[{datetime.now().strftime('%H:%M:%S')}][CRITICAL] {message}"
         self._outputText(msg,color='red')
 class LogThread(QThread):
     _logSignal = Signal(LogMsg)
@@ -82,7 +84,7 @@ class LogThread(QThread):
                     last = os.path.splitext(f)[0][-1]
                     if last.isdigit(): logIndex = int(last)
             logIndex += 1
-            logPath = '{}/{}-{}.log'.format(rootPath,defaultLogPrefix,logIndex)
+            logPath = f"{rootPath}/{defaultLogPrefix}-{logIndex}.log"
         self.logger.setInitFile(logPath)
     def run(self):
         while True:
@@ -125,16 +127,17 @@ class IOThread(QThread):
 class ScriptThread(QThread):
     # _inSignal = Signal(object)
     # _outSignal = Signal(object)
-    def __init__(self,moduleBase,logger:Logger=None,layout:QGridLayout=None,keysDict:dict=None,templates:Image=None):
+    def __init__(self,moduleBase,logger:Logger=None,layout:QGridLayout=None,keysDict:dict=None,templates:Image=None,screen:Screen=None):
         super().__init__()
         self.setTerminationEnabled(True)
         self.logger = logger
         self.layout = layout # pass a gridLayout
         self.templates = templates
-        self._module = importlib.import_module('scripts.'+moduleBase) # load 'scripts.moduleBase' module
+        self.screen = screen
+        self._module = importlib.import_module(f'scripts.{moduleBase}') # load 'scripts.moduleBase' module
         self._class = getattr(self._module, moduleBase) # class name is the same with module name
         # initialize instance
-        self.session = ScriptSession(logger=self.logger,keysDict=keysDict)
+        self.session = ScriptSession(logger=self.logger,keysDict=keysDict,image=self.templates,screen=self.screen)
         self.instance = self._class(logger=self.logger,layout=self.layout,session=self.session,templates=self.templates) 
 
     def onReceiveData(self,data:ScriptInputMsg):
@@ -151,9 +154,9 @@ class ScriptThread(QThread):
 ## IMAGE THREAD START
 @dataclass
 class ImageMsg:
-    targetX: int
-    targetY: int
-    navCenter: int
+    offsetX: int
+    offsetY: int
+    isHollow: bool
     isAligned: bool
     isFocused: bool
     fps: int
@@ -161,9 +164,25 @@ class ImageMsg:
     windowTopY: int
 class ImageThread(QThread):
     _imageSignal = Signal(ImageMsg)
-    def __init__(self,logger:Logger=None):
+    def __init__(self,screen:Screen,image:Image,logger:Logger=None):
         super().__init__()
         self.logger = logger
+        self.screen = screen
+        self.image = image
+    
+    def getNavPoint(self,compassImg) -> tuple : # return offsetX and offsetY 
+        compassLeftTop = self.image.matchTemplate('compass',compassImg,confidence=0.45,center=False)
+        if compassLeftTop == (0,0): return (0,0,False) # can't get compassImage, left it standby
+        compassSize = self.image.getSize('compass')
+        trimX, trimY = int(compassSize[0]*0.2), int(compassSize[1]*0.2)
+        compassCropped = compassImg[compassLeftTop[1]-trimY:compassLeftTop[1]+compassSize[1]+trimY,compassLeftTop[0]-trimX:compassLeftTop[0]+compassSize[0]+trimX]
+        navPointCenter = self.image.matchDualTemplate('navPoint','navPointHollow',compassCropped,minConfidence=0.7)
+        isHollow = True if navPointCenter[2] == 'navPointHollow' else False
+        compassImgSizeY, compassImgSizeX = compassCropped.shape[:2]
+        offsetX = navPointCenter[0]-compassImgSizeX/2
+        offsetY = navPointCenter[1]-compassImgSizeY/2
+        return (offsetX,offsetY,isHollow)
+
     def run(self):
         isAligned = 0
         windowHwnd = win32gui.FindWindow(None,globalWindowName)
@@ -171,56 +190,40 @@ class ImageThread(QThread):
             try: # already has windowHwnd
                 gameCoord = getWindowRectByHwnd(windowHwnd)
             except: # gameHwnd changed
-                # self.logger.critical(traceback.format_exc())
                 try: 
                     gameCoord,windowHwnd = getWindowRectByName(globalWindowName)
                 except Exception as e: 
                     if 'Invalid window handle' in str(e):
-                        self.logger.critical('ImageThread: No game process found, retrying in '+str(IMAGE_WAITING_TIMEOUT)+' sec.')
+                        self.logger.critical(f'ImageThread: No game process found, retrying in {IMAGE_WAITING_TIMEOUT} sec.')
                         time.sleep(IMAGE_WAITING_TIMEOUT)
                         continue
                     else: self.logger.critical(traceback.format_exc())
             try:
                 startTime = time.time()
                 isFocused = isForegroundWindow(globalWindowName,windowHwnd)
-                img = pyautogui.screenshot(region=gameCoord)
-            
-                gameResolution = gameCoord[2],gameCoord[3]
-                # gameCenterActual = gameCoord[0]+gameCoord[2]/2,gameCoord[1]+gameCoord[3]/2 
-                gameCenterRel = gameCoord[2]/2,gameCoord[3]/2 
-
-                # outsideOffsetY = (gameCoord[3]/3)*2
-                cv2OriginImg = cv2.cvtColor(np.asarray(img),cv2.COLOR_RGB2BGR)
-                # cv2ShowImg = cv2OriginImg.copy() # ShowImg for Overlay
-                cv2GrayImg = cv2.cvtColor(cv2OriginImg,cv2.COLOR_BGR2GRAY)
-
-                centerImg = cv2GrayImg[int(gameCenterRel[1]-180):int(gameCenterRel[1]+180),int(gameCenterRel[0]-220):int(gameCenterRel[0]+220)]
-                compassImg = cv2GrayImg[int(gameResolution[1]/1.63):int(gameResolution[1]/1.06),int(gameResolution[0]/4.04):int(gameResolution[0]/2.02)] # Magic Number: size for compass img
-            
-                compassOriginImg = cv2OriginImg[int(gameResolution[1]/1.63):int(gameResolution[1]/1.06),int(gameResolution[0]/4.04):int(gameResolution[0]/2.02)]
-                compassHsv = cv2.cvtColor(compassOriginImg,cv2.COLOR_BGR2HSV)
-                compassShowImg = compassOriginImg.copy() # screen overlay
-
-                if checkAlignWithTemplate(centerImg,destCircleImg) is True: isAligned = 1
-                else: isAligned = 0
+                originImg = self.screen.screenshot()
+                originGrayImg = cv2.cvtColor(originImg,cv2.COLOR_BGR2GRAY)
+                centerImg = self.screen.getRegion('center',img=originGrayImg)
+                compassImg = self.screen.getRegion('compass',img=originGrayImg)
+                destCircleImg = self.image.getImage('destCircle')
+                isAligned = 1 if checkAlignWithTemplate(centerImg,destCircleImg) else 0
+                (offsetX,offsetY,isHollow) = self.getNavPoint(compassImg)
+                # print(offsetX,offsetY)
                 elapsedTime = time.time()-startTime
-                # (targetX,targetY),navCenter,compassShowImg,navShowImg = getNavPointsByCompass(compassImg,compassShowImg,compassHsv) 
-                (targetX,targetY),navCenter = getNavPointsByCompass(compassImg,compassShowImg,compassHsv)
                 fps = int(1.0/elapsedTime)
-                message = ImageMsg(targetX,targetY,navCenter,isAligned,isFocused,fps,gameCoord[0],gameCoord[1])
+                message = ImageMsg(offsetX,offsetY,isHollow,isAligned,isFocused,fps,gameCoord[0],gameCoord[1])
                 self._imageSignal.emit(message)
             except:
                 self.logger.critical(traceback.format_exc())
             time.sleep(IMAGE_MINIMUM_TIMEOUT)
 ## IMAGE THREAD END
-
 class Main(QObject):
     scriptPath = ''
     scriptName = ''
     usingWatchdog = False
     isDebug = True
-    targetX = targetY = navCenter = 0
-    isAligned = isFocused = False
+    offsetX = offsetY = 0 
+    isHollow = isAligned = isFocused = False
     fps = 0
     windowLeftX = windowTopY = 0
     stateList = []
@@ -252,8 +255,9 @@ class Main(QObject):
         self.thread_io._ioSignal.connect(self.updateStatus)
         self.thread_io.start()
 
+        self.screen = Screen(logger=self.logger,config=self.config)
         self.image_templates = Image(logger=self.logger,config=self.config)
-        self.thread_image = ImageThread(logger=self.logger)
+        self.thread_image = ImageThread(logger=self.logger,screen=self.screen,image=self.image_templates)
         self.thread_image._imageSignal.connect(self.updateImage)
         self.thread_image.start()
         self.thread_script = None # initialize in loadScript()
@@ -281,33 +285,39 @@ class Main(QObject):
 
         self._setScriptActionsState(True)
 
+        self.showDebugWindow = True if self.config.get('GUI','show_debug_window') is True else False
+
         if self.config.get('GUI','load_default_on_startup'):
             defaultPath = self.config.get('GUI','default_script')
             if defaultPath is not None: self.loadScript(path=defaultPath)
+        else: self.config.set('GUI','default_script','')
 
     def updateStatus(self,data:IOMsg):
         # unpack & update
         self.journal = data.journal
         self.stateList = data.stateList
         self.guiFocus = data.guiFocus
-        if self.journal.nav.location is not None: self.shipLoc = self.journal.nav.location
-        if self.journal.nav.target is not None: self.shipTarget = self.journal.nav.target
+        if self.journal.nav.location: self.shipLoc = self.journal.nav.location
+        if self.journal.nav.target: self.shipTarget = self.journal.nav.target
 
         # display
         self.locationLabel.setText((f'Loc: {self.shipLoc}').ljust(49))
         self.targetLabel.setText((f'Target: {self.shipTarget}').ljust(49))
 
-        if self.thread_script is not None: # check if the script thread alives
+        if self.thread_script: # check if the script thread alives
             if not self.thread_script.isRunning(): # terminated
                 self.stopScript()
             else: self.scriptStatusLabel.setText('Running'.ljust(20))
     
     def updateImage(self,data:ImageMsg):
         # unpack
-        # targetX,targetY,navCenter,isAligned,isFocused,fps,windowLeftX,windowTopY
-        self.targetX = data.targetX
-        self.targetY = data.targetY
-        self.navCenter = data.navCenter
+        # offsetX,offsetY,isAligned,isFocused,fps,windowLeftX,windowTopY
+        #self.targetX = data.targetX
+        #self.targetY = data.targetY
+        #self.navCenter = data.navCenter
+        self.offsetX = data.offsetX
+        self.offsetY = data.offsetY
+        self.isHollow = data.isHollow
         self.isAligned = data.isAligned
         self.isFocused = data.isFocused
         self.fps = data.fps
@@ -319,11 +329,16 @@ class Main(QObject):
         self.alignedLabel.setText((f'Align: {1 if self.isAligned else 0}').ljust(9))
 
         # try to send data to ScriptThread
-        if self.thread_script is not None:
+        if self.thread_script:
             # pack & form a ScriptInputMsg
-            outputMsg = ScriptInputMsg(self.isAligned,self.isFocused,self.stateList,self.journal,self.guiFocus,self.targetX,self.targetY,self.navCenter,self.windowLeftX,self.windowTopY)
+            outputMsg = ScriptInputMsg(self.isAligned,self.isFocused,self.stateList,self.journal,self.guiFocus,self.offsetX,self.offsetY,self.isHollow,self.windowLeftX,self.windowTopY)
             # then emit it
             self._outputSignalToScript.emit(outputMsg)
+    
+    def showImage(self,img:cv2.Mat,name=1) -> None : # only works when showDebugWindow is set
+        if not self.showDebugWindow: return
+        cv2.imshow(f'Debug Window {str(name)}',img)
+        cv2.waitKey(0)
 
     def loadScript(self,path=None):
         if path is None: 
@@ -344,7 +359,7 @@ class Main(QObject):
         self.scriptName = self.scriptName[:-3] # remove '.py'
         self.logger.info(f'Loading script: {self.scriptPath}',color='green')
         try:
-            self.thread_script = ScriptThread(self.scriptName,logger=self.logger,layout=self.mainUI.scriptLayout,keysDict=self.keysDict)
+            self.thread_script = ScriptThread(self.scriptName,logger=self.logger,layout=self.mainUI.scriptLayout,keysDict=self.keysDict,templates=self.image_templates,screen=self.screen)
             self._outputSignalToScript.connect(self.thread_script.onReceiveData)
             self.thread_script.start()
         except Exception:
@@ -409,10 +424,11 @@ class Main(QObject):
         self.subUI.show()
 
     def onAbout(self):
-        webbrowser.open('https://github.com/Matrixchung/EDAutopilot', new=1)
+        webbrowser.open('https://github.com/Matrixchung/EDAutopilot-v2', new=1)
     
     def onExit(self): # release resources
-        if self.thread_script is not None: self.thread_script.terminate()
+        cv2.destroyAllWindows()
+        if self.thread_script: self.thread_script.terminate()
         self.thread_io.terminate()
         self.thread_image.terminate()
         self.logger.info("Resource cleared, program will exit.")

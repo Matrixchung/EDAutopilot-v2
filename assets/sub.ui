@@ -33,7 +33,12 @@
     </widget>
     <widget class="QWidget" name="tab_2">
      <attribute name="title">
-      <string>Keybinds</string>
+      <string>Control</string>
+     </attribute>
+    </widget>
+    <widget class="QWidget" name="tab_3">
+     <attribute name="title">
+      <string>Raw Config</string>
      </attribute>
     </widget>
    </widget>

@@ -87,7 +87,7 @@ duplicatedKeysDict = { # Here are some keybinds which may cause problems if they
     'UI_NextTab': ('CamYawRight', 'CycleNextPanel and CamYawRight (default: E) are duplicated. Please check the settings, otherwise the setTargetSystem() will not be performed correctly.'),
     'UI_PrevTab': ('CamYawLeft', 'CyclePreviousPanel and CamYawLeft (default: Q) are duplicated. Please check the settings, otherwise the setTargetSystem() will not be performed correctly.')
 }
-#Scancode Reference
+# Scancode Reference
 SCANCODE = {
     'KEY_ESCAPE'          : 0x01,
     'KEY_1'               : 0x02,
@@ -234,7 +234,7 @@ def keyTranslate(keyName,logger=None):
     if keyName in convert_to_direct_keys: keyName = convert_to_direct_keys[keyName]
     keyName = keyName.upper()
     if keyName not in SCANCODE: 
-        if logger is not None: logger.critical(f"{keyName} is not in SCANCODE list!!")
+        if logger: logger.critical(f"{keyName} is not in SCANCODE list!!")
         else: print(f"{keyName} is not in SCANCODE list!!")
         return 0x0
     return SCANCODE[keyName]
@@ -244,8 +244,7 @@ def init_keybinds(logger=None):
     list_of_bindings = [join(keyBindsPath, f) for f in listdir(keyBindsPath) if isfile(join(keyBindsPath, f)) and f.endswith('.binds')]
     if not list_of_bindings: 
         latestBindsPath = ''
-        if logger is not None:
-            logger.critical('No keybinds found, please check your game settings!')
+        if logger: logger.critical('No keybinds found, please check your game settings!')
         else: print('No keybinds found')
         return
     else: latestBindsPath = max(list_of_bindings, key=getmtime)
@@ -256,8 +255,7 @@ def init_keybinds(logger=None):
         if rootNode.hasAttribute('MajorVersion'): 
             presetName += "."+rootNode.getAttribute('MajorVersion')
             if rootNode.hasAttribute('MinorVersion'): presetName += "."+rootNode.getAttribute('MinorVersion')
-        if logger is not None:
-            logger.info('Parsing keybinds: '+presetName)
+        if logger: logger.info('Parsing keybinds: '+presetName)
         else: print('Parsing keybinds: '+presetName)
     emptyKeys = []
     successKeys = 0
@@ -288,7 +286,7 @@ def init_keybinds(logger=None):
                 if key != 0x0:
                     defaultDict[keyName] = key
                     successKeys += 1
-                    if key in dKeys and logger is not None: logger.warn(duplicatedKeysDict[keyName][1])
+                    if key in dKeys and logger: logger.warn(duplicatedKeysDict[keyName][1])
                     # print("Successfully added "+keyName+" "+key+" "+hex(keyTranslate(key)))
                     continue 
             # fall to secondary
@@ -299,20 +297,20 @@ def init_keybinds(logger=None):
                 if key != 0x0:
                     defaultDict[keyName] = key
                     successKeys += 1
-                    if key in dKeys and logger is not None: logger.warn(duplicatedKeysDict[keyName][1])
+                    if key in dKeys and logger: logger.warn(duplicatedKeysDict[keyName][1])
                     # print("Successfully added "+keyName+" "+key+" "+hex(keyTranslate(key)))
                     continue
-            if keyName.endswith('_Alt') and logger is not None:
+            if keyName.endswith('_Alt') and logger:
                 logger.warn(f'For capability, Key {keyName} needs a secondary key setting while we failed to find it.')
             emptyKeys.append(keyName)# no key is specific
     if len(emptyKeys)>0:
-        if logger is not None:
+        if logger:
             logger.critical(f'Error in setting keybind(s): {str(emptyKeys)}')
             logger.critical('You may have to bind the keybind(s) in game manually')
         else: 
             print(f'Error in setting keybind(s): {str(emptyKeys)}')
             print('You may have to bind the keybind(s) in game manually')
-    if logger is not None: logger.info(f'Successfully added {successKeys} keybinds, {len(emptyKeys)} failed.')
+    if logger: logger.info(f'Successfully added {successKeys} keybinds, {len(emptyKeys)} failed.')
     else: print(f'Successfully added {successKeys} keybinds, {len(emptyKeys)} failed.')
     return defaultDict
 
