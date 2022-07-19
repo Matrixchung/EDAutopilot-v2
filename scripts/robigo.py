@@ -3,7 +3,7 @@ from scripts.ScriptBase import ScriptBase
 from utils.utils import *
 from utils.image import Image, Screen
 from PySide2.QtWidgets import QGridLayout, QVBoxLayout, QLabel, QGroupBox, QComboBox
-from PySide2.QtCore import Qt
+from datetime import datetime
 import transitions
 pyautogui.FAILSAFE=False
 # "Template name" : {"grayscale","scalable","path"}
@@ -41,6 +41,8 @@ tab_robigominesMarked = loadFromFile('templates/robigo/tab_robigo_mines_marked.p
 tab_robigominesNormalHL = loadFromFile('templates/robigo/tab_robigo_mines_normal_highlight.png')
 tab_robigomines = loadFromFile('templates/robigo/tab_robigo_mines_mission.png')
 tab_robigominesHL = loadFromFile('templates/robigo/tab_robigo_mines_mission_highlight.png')
+tab_robigominesMissionMarked = loadFromFile('templates/robigo/tab_robigo_mines_mission_marked.png')
+tab_robigominesMissionMarkedHL = loadFromFile('templates/robigo/tab_robigo_mines_mission_marked_HL.png')
 
 exitButton = loadFromFile("templates/exit.png")
 exitButtonHL = loadFromFile("templates/exit_highlight.png")
@@ -126,19 +128,19 @@ class robigo(ScriptBase):
         if self.stateOverride != '':self.initialState=self.stateOverride
         self.progress = p()
         self.machine = transitions.Machine(model=self.progress,states=self.states,initial=self.initialState)
-        groupbox_1 = QGroupBox('Status')
-        self.label1 = QLabel('State: initial')
-        self.label2 = QLabel('Status: None')
-        self.label3 = QLabel('GuiFocus: NoFocus')
-        self.label4 = QLabel('MissionCount: 0')
-        self.label5 = QLabel('Time Elapsed: 0')
-        layout_1 = QVBoxLayout()
-        layout_1.addWidget(self.label1)
-        layout_1.addWidget(self.label2)
-        layout_1.addWidget(self.label3)
-        layout_1.addWidget(self.label4)
-        layout_1.addWidget(self.label5)
-        groupbox_1.setLayout(layout_1)
+        #groupbox_1 = QGroupBox('Status')
+        #self.label1 = QLabel('State: initial')
+        #self.label2 = QLabel('Status: None')
+        #self.label3 = QLabel('GuiFocus: NoFocus')
+        #self.label4 = QLabel('MissionCount: 0')
+        #self.label5 = QLabel('Time Elapsed: 0')
+        #layout_1 = QVBoxLayout()
+        #layout_1.addWidget(self.label1)
+        #layout_1.addWidget(self.label2)
+        #layout_1.addWidget(self.label3)
+        #layout_1.addWidget(self.label4)
+        #layout_1.addWidget(self.label5)
+        #groupbox_1.setLayout(layout_1)
 
         groupbox_2 = QGroupBox('Controls')
         self.label6 = QLabel('Auto: Off')
@@ -150,7 +152,7 @@ class robigo(ScriptBase):
         layout_2.addWidget(self.comboBox1)
         groupbox_2.setLayout(layout_2)
 
-        self.layout.addWidget(groupbox_1,0,0,-1,1)
+        #self.layout.addWidget(groupbox_1,0,0,-1,1)
         self.layout.addWidget(groupbox_2,0,1,-1,1)
 
     def onChangeStatus(self,status:str):
@@ -168,7 +170,6 @@ class robigo(ScriptBase):
         logger = self.logger
         firstJumpDest = self.firstJumpDest
         thirdJumpDest = self.thirdJumpDest
-        stateOverride = self.stateOverride
         maxMissionCount = self.maxMissionCount
         missionCountOverride = self.missionCountOverride
         failsafeState = ''
@@ -183,9 +184,7 @@ class robigo(ScriptBase):
                 if keyboard.is_pressed('end'):
                     auto = False
                 if isDebug : # Debugging functions
-                    if keyboard.is_pressed('capslock+space'): session.screenCapture()
-                    if keyboard.is_pressed("f11") : 
-                        pass
+                    if keyboard.is_pressed('f11'): session.screenCapture(f"{datetime.now().strftime('%H-%M-%S')}.png")
                     if keyboard.is_pressed("f9"):
                         pass
                 if missionCountOverride != 0: missionCount = missionCountOverride
@@ -319,6 +318,7 @@ class robigo(ScriptBase):
                         if 'FSDMassLocked' not in session.stateList:
                             session.sendKey('ThrustUp',hold=3)
                             session.sendKey('SpeedZero')
+                            session.sleep(1)
                             machine.set_state('first-align')
                     
                     elif progress.state=='first-align':
@@ -566,9 +566,11 @@ class robigo(ScriptBase):
                                 res3 = isImageInGame(tab_robigominesNormal,confidence=0.7)
                                 res4 = isImageInGame(tab_robigominesNormalHL,confidence=0.7)
                                 res5 = isImageInGame(tab_robigominesMarked,confidence=0.7)
-                                if res2 or res4: # Match Found
+                                res6 = isImageInGame(tab_robigominesMissionMarked,confidence=0.7)
+                                res7 = isImageInGame(tab_robigominesMissionMarkedHL,confidence=0.7)
+                                if res2 or res4 or res7: # Match Found
                                     break
-                                if (not res2 and not res4) or (res1 or res3 or res5): 
+                                if (not res2 and not res4 and not res7) or (res1 or res3 or res5 or res6): 
                                     session.sendKey('UI_Up')
                                     session.sleep(2.5)
                             session.sendKey('UI_Select')
@@ -591,7 +593,7 @@ class robigo(ScriptBase):
                     elif progress.state=='second-waiting-for-arrive':
                         if 'Supercruise' in session.stateList :
                             if isImageInGame(sign_obscured,confidence=0.8): # target obscured
-                                logger.info('second-waiting-for-arrive:Destination Target Obscured!') # 目标被遮挡
+                                logger.info('second-waiting-for-arrive: Destination Target Obscured!') # 目标被遮挡
                                 session.sunAvoiding(turnDelay=9,fwdDelay=30)
                                 machine.set_state('second-auxiliary-align')
                             else: session.align()
@@ -730,11 +732,11 @@ class robigo(ScriptBase):
                                 machine.set_state('initial')
 
                 if align: align = session.align()
-                self.label1.setText('State: '+progress.state)
-                self.label2.setText('Status: '+session.status)
-                self.label3.setText('GuiFocus: '+session.guiFocus)
-                self.label4.setText('MissionCount: '+str(missionCount))
-                self.label5.setText('Time Elapsed: '+str(elapsedTime))
-                self.label6.setText('Auto: '+str(auto))
+                #self.label1.setText('State: '+progress.state)
+                #self.label2.setText('Status: '+session.status)
+                #self.label3.setText('GuiFocus: '+session.guiFocus)
+                #self.label4.setText('MissionCount: '+str(missionCount))
+                #self.label5.setText('Time Elapsed: '+str(elapsedTime))
+                #self.label6.setText('Auto: '+str(auto))
             except:
                 logger.warn(traceback.format_exc())
