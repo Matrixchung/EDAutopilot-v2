@@ -100,6 +100,8 @@ class p(object):
 class robigo(ScriptBase):
     description = """
     robigo.py: An automonous script for Robigo Sightseeing Mission
+    You must start the cycle in Passenger Lounge 
+    Horizons only
     """
     ## USER_DEFINITIONS_AREA_BEGINS
     stateOverride = '' # Debugging Options (default: none)
