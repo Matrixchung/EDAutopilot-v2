@@ -16,7 +16,6 @@ class ScriptInputMsg:
     guiFocus: str
     offsetX: int
     offsetY: int
-    isHollow: bool
     windowLeftX: int
     windowTopY: int
 class routeWorker(QThread):
@@ -49,7 +48,6 @@ class ScriptSession: # will be initialized in ScriptThread
         self.guiFocus = data.guiFocus
         self.offsetX = data.offsetX
         self.offsetY = data.offsetY
-        self.isHollow = data.isHollow
         self.windowCoord = (data.windowLeftX,data.windowTopY)
         self.status = self.journal.status
         self.shipLoc = self.journal.nav.location
@@ -72,19 +70,16 @@ class ScriptSession: # will be initialized in ScriptThread
         absX, absY = abs(offsetX), abs(offsetY)
         if absX<3: trimX = ALIGN_TRIMM_DELAY
         if absY<3: trimY = ALIGN_TRIMM_DELAY
-        if self.isHollow: # hollow dot, which means we are in the opposite side
-            if offsetY<0: self.sendKey('PitchUpButton',hold=ALIGN_KEY_DELAY)
-            else: self.sendKey('PitchDownButton',hold=ALIGN_KEY_DELAY)
-        elif absX>ALIGN_DEAD_ZONE: # align X-Axis first
+        if absY>ALIGN_DEAD_ZONE: # align Y-Axis first
+            if offsetY<0: self.sendKey('PitchUpButton',hold=ALIGN_KEY_DELAY-trimY)
+            else: self.sendKey('PitchDownButton',hold=ALIGN_KEY_DELAY-trimY)
+        elif absX>ALIGN_DEAD_ZONE: 
             if absX>ROLL_YAW_DEAD_ZONE:
                 if offsetX>0: self.sendKey('RollRightButton' if offsetY<0 else 'RollLeftButton',hold=0.1)
                 else: self.sendKey('RollLeftButton' if offsetY<0 else 'RollRightButton',hold=0.1)
             else:
                 if offsetX>0: self.sendKey('YawRightButton',hold=ALIGN_KEY_DELAY-trimX)
                 else : self.sendKey('YawLeftButton',hold=ALIGN_KEY_DELAY-trimX)
-        elif absY>ALIGN_DEAD_ZONE:
-            if offsetY<0: self.sendKey('PitchUpButton',hold=ALIGN_KEY_DELAY-trimY)
-            else: self.sendKey('PitchDownButton',hold=ALIGN_KEY_DELAY-trimY)
         return True
   
     def sunAvoiding(self,fwdDelay=18,turnDelay=12):

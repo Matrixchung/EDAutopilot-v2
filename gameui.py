@@ -156,7 +156,6 @@ class ScriptThread(QThread):
 class ImageMsg:
     offsetX: int
     offsetY: int
-    isHollow: bool
     isAligned: bool
     isFocused: bool
     fps: int
@@ -172,7 +171,7 @@ class ImageThread(QThread):
     
     def getNavPoint(self,compassImg) -> tuple : # return offsetX and offsetY 
         compassLeftTop = self.image.matchTemplate('compass',compassImg,confidence=0.45,center=False)
-        if compassLeftTop == (0,0): return (0,0,False) # can't get compassImage, left it standby
+        if compassLeftTop == (0,0): return (0,0) # can't get compassImage, left it standby
         compassSize = self.image.getSize('compass')
         trimX, trimY = int(compassSize[0]*0.2), int(compassSize[1]*0.2)
         compassCropped = compassImg[compassLeftTop[1]-trimY:compassLeftTop[1]+compassSize[1]+trimY,compassLeftTop[0]-trimX:compassLeftTop[0]+compassSize[0]+trimX]
@@ -181,7 +180,7 @@ class ImageThread(QThread):
         compassImgSizeY, compassImgSizeX = compassCropped.shape[:2]
         offsetX = navPointCenter[0]-compassImgSizeX/2
         offsetY = navPointCenter[1]-compassImgSizeY/2
-        return (offsetX,offsetY,isHollow)
+        return (offsetX,offsetY)
 
     def run(self):
         isAligned = 0
@@ -207,11 +206,11 @@ class ImageThread(QThread):
                 compassImg = self.screen.getRegion('compass',img=originGrayImg)
                 destCircleImg = self.image.getImage('destCircle')
                 isAligned = 1 if checkAlignWithTemplate(centerImg,destCircleImg) else 0
-                (offsetX,offsetY,isHollow) = self.getNavPoint(compassImg)
+                (offsetX,offsetY) = self.getNavPoint(compassImg)
                 # print(offsetX,offsetY)
                 elapsedTime = time.time()-startTime
                 fps = int(1.0/elapsedTime)
-                message = ImageMsg(offsetX,offsetY,isHollow,isAligned,isFocused,fps,gameCoord[0],gameCoord[1])
+                message = ImageMsg(offsetX,offsetY,isAligned,isFocused,fps,gameCoord[0],gameCoord[1])
                 self._imageSignal.emit(message)
             except:
                 self.logger.critical(traceback.format_exc())
@@ -223,7 +222,7 @@ class Main(QObject):
     usingWatchdog = False
     isDebug = True
     offsetX = offsetY = 0 
-    isHollow = isAligned = isFocused = False
+    isAligned = isFocused = False
     fps = 0
     windowLeftX = windowTopY = 0
     stateList = []
@@ -317,7 +316,6 @@ class Main(QObject):
         #self.navCenter = data.navCenter
         self.offsetX = data.offsetX
         self.offsetY = data.offsetY
-        self.isHollow = data.isHollow
         self.isAligned = data.isAligned
         self.isFocused = data.isFocused
         self.fps = data.fps
@@ -331,7 +329,7 @@ class Main(QObject):
         # try to send data to ScriptThread
         if self.thread_script:
             # pack & form a ScriptInputMsg
-            outputMsg = ScriptInputMsg(self.isAligned,self.isFocused,self.stateList,self.journal,self.guiFocus,self.offsetX,self.offsetY,self.isHollow,self.windowLeftX,self.windowTopY)
+            outputMsg = ScriptInputMsg(self.isAligned,self.isFocused,self.stateList,self.journal,self.guiFocus,self.offsetX,self.offsetY,self.windowLeftX,self.windowTopY)
             # then emit it
             self._outputSignalToScript.emit(outputMsg)
     
