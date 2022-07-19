@@ -63,8 +63,8 @@ class ScriptSession: # will be initialized in ScriptThread
     def sleep(self,delay:float) -> None:
         time.sleep(delay)
     def align(self) -> bool : # return False if already aligned
-        if self.offsetX == 0 and self.offsetY == 0 : return True
         if self.isAligned == 1: return False
+        if self.offsetX == 0 and self.offsetY == 0 : return True
         offsetX, offsetY = self.offsetX, self.offsetY
         trimX = trimY = 0.0
         absX, absY = abs(offsetX), abs(offsetY)

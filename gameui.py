@@ -176,7 +176,6 @@ class ImageThread(QThread):
         trimX, trimY = int(compassSize[0]*0.2), int(compassSize[1]*0.2)
         compassCropped = compassImg[compassLeftTop[1]-trimY:compassLeftTop[1]+compassSize[1]+trimY,compassLeftTop[0]-trimX:compassLeftTop[0]+compassSize[0]+trimX]
         navPointCenter = self.image.matchDualTemplate('navPoint','navPointHollow',compassCropped,minConfidence=0.7)
-        isHollow = True if navPointCenter[2] == 'navPointHollow' else False
         compassImgSizeY, compassImgSizeX = compassCropped.shape[:2]
         offsetX = navPointCenter[0]-compassImgSizeX/2
         offsetY = navPointCenter[1]-compassImgSizeY/2
