@@ -3,7 +3,7 @@ numpy==1.22.1
 psutil==5.9.0
 PyAutoGUI==0.9.53
 pyscreeze==0.1.28
-pywin32==301
+pywin32==302
 transitions==0.8.10
 opencv_python==4.5.5.62
 opencv-contrib-python==4.5.5.62
