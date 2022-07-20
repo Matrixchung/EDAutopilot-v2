@@ -16,15 +16,15 @@ from utils.keybinds import *
 from utils.status import *
 
 ## Constants
-ALIGN_TRIMM_DELAY = 0.080
+ALIGN_TRIMM_DELAY = 0.10
 ALIGN_KEY_DELAY = 0.180
 KEY_DEFAULT_DELAY = 0.120
 KEY_REPEAT_DELAY = 0.200
 MOUSE_CLICK_DELAY = 0.200
 DELAY_BETWEEN_KEYS = 1.5
-ALIGN_DEAD_ZONE = 1
+ALIGN_DEAD_ZONE = 0.6
 ROLL_YAW_DEAD_ZONE = 10
-TEMPLATE_CIRCLE_DEAD_ZONE = 51
+TEMPLATE_CIRCLE_DEAD_ZONE = 52
 
 globalWindowName = "Elite - Dangerous (CLIENT)"
 globalProcessName = "EliteDangerous64.exe"

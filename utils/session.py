@@ -1,10 +1,11 @@
 import time
 import cv2
 import numpy as np
+from datetime import datetime
 from PySide2.QtCore import QThread
 from dataclasses import dataclass
 from collections import Counter
-from utils.utils import ROLL_YAW_DEAD_ZONE, sendHexKey,getKeys,Journal,ALIGN_DEAD_ZONE,ALIGN_KEY_DELAY,ALIGN_TRIMM_DELAY
+from utils.utils import sendHexKey,getKeys,Journal,ALIGN_DEAD_ZONE,ALIGN_KEY_DELAY,ALIGN_TRIMM_DELAY
 from utils.keybinds import typewrite
 from utils.image import Screen, Image
 @dataclass
@@ -62,26 +63,41 @@ class ScriptSession: # will be initialized in ScriptThread
         if sleep: self.sleep(sleep)
     def sleep(self,delay:float) -> None:
         time.sleep(delay)
-    def align(self) -> bool : # return False if already aligned
-        if self.isAligned == 1: return False
-        if self.offsetX == 0 and self.offsetY == 0 : return True
-        offsetX, offsetY = self.offsetX, self.offsetY
-        trimX = trimY = 0.0
-        absX, absY = abs(offsetX), abs(offsetY)
-        if absX<3: trimX = ALIGN_TRIMM_DELAY
-        if absY<3: trimY = ALIGN_TRIMM_DELAY
-        if absY>ALIGN_DEAD_ZONE: # align Y-Axis first
-            if offsetY<0: self.sendKey('PitchUpButton',hold=ALIGN_KEY_DELAY-trimY)
-            else: self.sendKey('PitchDownButton',hold=ALIGN_KEY_DELAY-trimY)
-        elif absX>ALIGN_DEAD_ZONE: 
-            if absX>ROLL_YAW_DEAD_ZONE:
-                if offsetX>0: self.sendKey('RollRightButton' if offsetY<0 else 'RollLeftButton',hold=0.1)
-                else: self.sendKey('RollLeftButton' if offsetY<0 else 'RollRightButton',hold=0.1)
-            else:
-                if offsetX>0: self.sendKey('YawRightButton',hold=ALIGN_KEY_DELAY-trimX)
-                else : self.sendKey('YawLeftButton',hold=ALIGN_KEY_DELAY-trimX)
-        return True
-  
+    detectionLossTimer = 0
+    alignedTimer = 0
+    def align(self) -> bool :
+        quitAlign = False
+        while not quitAlign:
+            if self.isAligned:
+                if self.alignedTimer==0: self.alignedTimer = int(datetime.utcnow().timestamp())
+                elif int(datetime.utcnow().timestamp())-self.alignedTimer>=2: quitAlign = True
+            elif self.alignedTimer!=0: self.alignedTimer = 0
+            offsetX, offsetY = self.offsetX, self.offsetY
+            if offsetX == offsetY == 0:
+                if self.detectionLossTimer == 0: self.detectionLossTimer = int(datetime.utcnow().timestamp())
+                else: 
+                    nowTime = int(datetime.utcnow().timestamp())
+                    if nowTime - self.detectionLossTimer >= 5: # loss for over than 5 seconds, applying random jitter
+                        self.sunAvoiding()
+            else: 
+                if self.detectionLossTimer != 0: self.detectionLossTimer = 0
+                trimX = trimY = 0.0
+                absX, absY = abs(offsetX), abs(offsetY)
+                if absX<3: trimX = ALIGN_TRIMM_DELAY
+                if absY<3: trimY = ALIGN_TRIMM_DELAY
+                if absY>ALIGN_DEAD_ZONE: # align Y-Axis first
+                    if offsetY<0: self.sendKey('PitchUpButton',hold=ALIGN_KEY_DELAY-trimY)
+                    else: self.sendKey('PitchDownButton',hold=ALIGN_KEY_DELAY-trimY)
+                elif absX>ALIGN_DEAD_ZONE: 
+                    # if absX>ROLL_YAW_DEAD_ZONE:
+                    #     if offsetX>0: self.sendKey('RollRightButton' if offsetY<0 else 'RollLeftButton',hold=0.1)
+                    #     else: self.sendKey('RollLeftButton' if offsetY<0 else 'RollRightButton',hold=0.1)
+                    # else:
+                    if offsetX>0: self.sendKey('YawRightButton',hold=ALIGN_KEY_DELAY-trimX)
+                    else : self.sendKey('YawLeftButton',hold=ALIGN_KEY_DELAY-trimX)
+        self.detectionLossTimer = 0
+        self.alignedTimer = 0
+        return False
     def sunAvoiding(self,fwdDelay=18,turnDelay=12):
         self.sendKey('SpeedZero')
         self.sleep(2)

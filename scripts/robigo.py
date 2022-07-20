@@ -1,8 +1,6 @@
-from gameui import Logger, ScriptSession 
-from scripts.ScriptBase import ScriptBase
+from scripts.ScriptBase import *
 from utils.utils import *
-from utils.image import Image, Screen
-from PySide2.QtWidgets import QGridLayout, QVBoxLayout, QLabel, QGroupBox, QComboBox
+from PySide2.QtWidgets import QVBoxLayout, QLabel, QGroupBox, QComboBox
 from datetime import datetime
 import transitions
 pyautogui.FAILSAFE=False
@@ -114,7 +112,7 @@ class robigo(ScriptBase):
     missionCountOverride = 0 # For any unread missions or the mission count not shown properly
     ## USER_DEFINITIONS_AREA_ENDS
 
-    states = ['initial','get-mission','mission-received','select-target-sothis','undock','thrust-up','first-align','first-jump', # in Robigo
+    states = ['initial','get-mission','mission-received','undock','thrust-up','first-align','first-jump', # in Robigo
     'first-sc','second-align','second-jump', # in first-jump middle star
     'second-sc','third-align','first-approaching','first-enable-assist','first-waiting-for-arrive','first-auxiliary-align', # in Sothis and Sothis 5 (Sirius Atmospherics)
     'target-beacon','waiting-for-beacon','select-target-robigo','sothis-a-5-avoiding','fourth-align','third-jump', # in Sirius Atmospherics
@@ -184,7 +182,7 @@ class robigo(ScriptBase):
                 if keyboard.is_pressed('end'):
                     auto = False
                 if isDebug : # Debugging functions
-                    if keyboard.is_pressed('f11'): session.screenCapture(f"{datetime.now().strftime('%H-%M-%S')}.png")
+                    if keyboard.is_pressed('f11'): session.screenCapture(f"{datetime.now().strftime('%H-%M-%S')}.png",grayscale=True)
                     if keyboard.is_pressed("f9"):
                         pass
                 if missionCountOverride != 0: missionCount = missionCountOverride
@@ -382,9 +380,10 @@ class robigo(ScriptBase):
                     elif progress.state=='first-approaching':
                         if not session.align():
                             session.sendKey('Speed100')
-                            session.sleep(50) # magic number:wait the ship approaching Sirius Atmospherics
-                            session.align()
+                            session.sleep(30) # magic number:wait the ship approaching Sirius Atmospherics
                             session.sendKey('SpeedZero')
+                            session.sleep(5)
+                            session.align()
                             machine.set_state('first-enable-assist')
                     
                     elif progress.state == 'first-enable-assist':
@@ -446,7 +445,6 @@ class robigo(ScriptBase):
                                 logger.info('first-waiting-for-arrive:Destination Target Obscured!')
                                 session.sunAvoiding(turnDelay=9,fwdDelay=30)
                                 machine.set_state('first-auxiliary-align')
-                            else: session.align()
                         # else:
                             # result2 = isImageInGame(sign_align_with_target,confidence=0.55)
                             # if result2 and 'Supercruise' in session.stateList :
@@ -467,7 +465,7 @@ class robigo(ScriptBase):
                             machine.set_state('select-target-robigo')
 
                     elif progress.state=='select-target-robigo':
-                        if session.shipTarget != thirdJumpDest and session.shipTarget != 'Robigo': # select-target-sothis 
+                        if session.shipTarget != thirdJumpDest and session.shipTarget != 'Robigo': # select-target-robigo
                             session.sleep(1)
                             setDest(session,'Robigo')
                         session.sleep(2)
@@ -596,7 +594,6 @@ class robigo(ScriptBase):
                                 logger.info('second-waiting-for-arrive: Destination Target Obscured!') # 目标被遮挡
                                 session.sunAvoiding(turnDelay=9,fwdDelay=30)
                                 machine.set_state('second-auxiliary-align')
-                            else: session.align()
                         # else:
                             # result2 = isImageInGame(sign_align_with_target,confidence=0.55)
                             # if result2 and 'Supercruise' in session.stateList :
