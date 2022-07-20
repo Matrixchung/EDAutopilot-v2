@@ -709,13 +709,13 @@ class robigo(ScriptBase):
                                     if result1[0]==-1 : continue
                                     mouseClick(result1)
                                     session.sleep(2)
-                                    mouseClick(getAbsoluteCoordByOffset(windowCoord,offset_button_reward_1))
+                                    pyautogui.moveTo(getAbsoluteCoordByOffset(windowCoord,offset_button_reward_1))
+                                    session.sendKey('UI_Select')
                                     session.sleep(3)
                                     backButton = isImageInGame(button_back_smallHL,confidence=0.6)
                                     while not backButton:  backButton = isImageInGame(button_back_smallHL,confidence=0.6)
                                     session.sleep(1)
-                                    mouseClick(getAbsoluteCoordByOffset(windowCoord,offset_button_reward_back))
-                                    # session.sendKey('UI_Select')
+                                    session.sendKey('UI_Select')
                                     if missionCountOverride >= 1: missionCountOverride -= 1
 
                                 missionCount = len(session.missions)
