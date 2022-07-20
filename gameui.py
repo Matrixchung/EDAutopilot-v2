@@ -168,17 +168,27 @@ class ImageThread(QThread):
         self.logger = logger
         self.screen = screen
         self.image = image
-    
+    navPointPreX, navPointPreY = 0.0, 0.0
+    noiseFilterTimer = 0
     def getNavPoint(self,compassImg) -> tuple : # return offsetX and offsetY 
         compassLeftTop = self.image.matchTemplate('compass',compassImg,confidence=0.45,center=False)
-        if compassLeftTop == (0,0): return (0,0) # can't get compassImage, left it standby
+        if compassLeftTop == (0,0): 
+            self.navPointPreX, self.navPointPreY = 0.0, 0.0
+            return (0,0) # can't get compassImage, left it standby
         compassSize = self.image.getSize('compass')
-        trimX, trimY = int(compassSize[0]*0.2), int(compassSize[1]*0.2)
+        trimX, trimY = int(compassSize[0]*0.1), int(compassSize[1]*0.1)
         compassCropped = compassImg[compassLeftTop[1]-trimY:compassLeftTop[1]+compassSize[1]+trimY,compassLeftTop[0]-trimX:compassLeftTop[0]+compassSize[0]+trimX]
-        navPointCenter = self.image.matchDualTemplate('navPoint','navPointHollow',compassCropped,minConfidence=0.7)
+        navPointCenter = self.image.matchDualTemplate('navPoint','navPointHollow',compassCropped,minConfidence=0.75)
         compassImgSizeY, compassImgSizeX = compassCropped.shape[:2]
-        offsetX = navPointCenter[0]-compassImgSizeX/2
-        offsetY = navPointCenter[1]-compassImgSizeY/2
+        if self.navPointPreX == 0 and self.navPointPreY == 0: self.navPointPreX, self.navPointPreY = navPointCenter[0], navPointCenter[1] # initialize
+        realX, realY = navPointCenter[0], navPointCenter[1]
+        if (abs(self.navPointPreX-navPointCenter[0]) >= 10 or abs(self.navPointPreY-navPointCenter[1]) >= 10) and (datetime.utcnow().timestamp()-self.noiseFilterTimer<=2): 
+            realX, realY = self.navPointPreX, self.navPointPreY # filter
+        else: 
+            self.noiseFilterTimer = datetime.utcnow().timestamp()
+            self.navPointPreX, self.navPointPreY = navPointCenter[0], navPointCenter[1]
+        offsetX = realX-compassImgSizeX/2
+        offsetY = realY-compassImgSizeY/2
         return (offsetX,offsetY)
 
     def run(self):
