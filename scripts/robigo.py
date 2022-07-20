@@ -380,7 +380,7 @@ class robigo(ScriptBase):
                     elif progress.state=='first-approaching':
                         if not session.align():
                             session.sendKey('Speed100')
-                            session.sleep(30) # magic number:wait the ship approaching Sirius Atmospherics
+                            session.sleep(50) # magic number:wait the ship approaching Sirius Atmospherics
                             session.sendKey('SpeedZero')
                             session.sleep(5)
                             session.align()
